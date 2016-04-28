@@ -18,3 +18,6 @@ This repository actually houses 2 programs - Shameless and TicketGenerator.
 
 #Requirements
 An internet connection
+
+#Credits
+[FunKeyCia](https://github.com/llakssz/FunKeyCIA/blob/master/FunKeyCIA.py#L162-L204) - for CDN info code I translated from Python
