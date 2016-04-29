@@ -7,14 +7,13 @@ namespace TicketGenerator
 	using System.Reflection;
 	using System.Text;
 
-	public class TicketGeneratorMain
+	public static class TicketGeneratorMain
 	{
 		public static void Main(string[] args)
 		{
 			Console.OutputEncoding = Encoding.UTF8;
 			PrintProgramVersion();
 #if DEBUG
-			// File.Delete(Files.DbPath);
 			File.Delete(Files.CsvPath);
 			if (Directory.Exists(Files.TicketsDir))
 			{

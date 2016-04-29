@@ -7,6 +7,7 @@ namespace Shameless
 	using System.IO;
 	using System.Linq;
 	using System.Net;
+	using System.Reflection;
 	using System.Text;
 	using System.Threading.Tasks;
 	using System.Windows.Forms;
@@ -31,12 +32,12 @@ namespace Shameless
 		public MainForm()
 		{
 			this.InitializeComponent();
-
-			// ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
 		}
 
 		private async void MainForm_Shown(object sender, EventArgs e)
 		{
+			this.SetVersion();
+
 			ServicePointManager.ServerCertificateValidationCallback = (sender2, certificate, chain, sslPolicyErrors) => true;
 
 			this.currentTitleStatusLabel.Text = string.Empty;
@@ -69,7 +70,7 @@ namespace Shameless
 
 			this.UpdateAction($"Reading data from \"{Files.CsvPath}\"...");
 			this.titlesListView.BeginUpdate();
-			this.ReadDataCsvIntoListView();
+			this.DeserializeCsv();
 			this.titlesListView.EndUpdate();
 
 			this.UpdateAction(string.Empty);
@@ -78,12 +79,21 @@ namespace Shameless
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 		}
 
+		private void SetVersion()
+		{
+			var assemblyName = Assembly.GetExecutingAssembly().GetName();
+			var majorVersion = assemblyName.Version.Major;
+			var minorVersion = assemblyName.Version.Minor;
+
+			this.Text = $"{assemblyName.Name} v{majorVersion}.{minorVersion}";
+		}
+
 		private void UpdateAction(string message)
 		{
 			this.currentActionLabel.Text = message;
 		}
 
-		private void ReadDataCsvIntoListView()
+		private void DeserializeCsv()
 		{
 			var entries = DatabaseParser.ParseFromCsv(Files.CsvPath);
 
@@ -104,9 +114,22 @@ namespace Shameless
 
 		private void ResizeNameColumn()
 		{
-			var size = 10*(int)Math.Ceiling(this.titlesListView.Items.Cast<ListViewItem>().Average(item => item.SubItems[2].Text.Length));
+			if (this.titlesListView.Items.Count > 0)
+			{
+				var size = 10
+							* (int)Math.Ceiling(this.titlesListView.Items.Cast<ListViewItem>().Average(item => item.SubItems[2].Text.Length));
+				this.titlesListView.Columns[2].Width = size;
+			}
+			else
+			{
+				foreach (ColumnHeader column in this.titlesListView.Columns)
+				{
+					column.Width = 50;
+				}
 
-			this.titlesListView.Columns[2].Width = size;
+				// Encrypted title key column
+				this.titlesListView.Columns[1].Width = 110;
+			}
 		}
 
 		private void titlesListView_ColumnClick(object sender, ColumnClickEventArgs e)
