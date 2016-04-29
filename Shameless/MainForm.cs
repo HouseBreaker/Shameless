@@ -94,6 +94,10 @@ namespace Shameless
 
 			this.titlesListView.ListViewItemSorter = new CompareAscending(2);
 			this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+
+			var size = 10*(int)Math.Ceiling(this.titlesListView.Items.Cast<ListViewItem>().Average(item => item.SubItems[2].Text.Length));
+
+			this.titlesListView.Columns[2].Width = size;
 		}
 
 		private void titlesListView_ColumnClick(object sender, ColumnClickEventArgs e)
