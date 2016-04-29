@@ -31,6 +31,7 @@ namespace Shameless
 		public MainForm()
 		{
 			this.InitializeComponent();
+
 			// ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
 		}
 
@@ -42,7 +43,11 @@ namespace Shameless
 
 			if (!File.Exists(Files.CsvPath))
 			{
-				var result = MessageBox.Show(Properties.Resources.Disclaimer, "boo", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+				var result = MessageBox.Show(
+					Properties.Resources.Disclaimer, 
+					"boo", 
+					MessageBoxButtons.OKCancel, 
+					MessageBoxIcon.Warning);
 
 				if (result == DialogResult.Cancel)
 				{
@@ -94,6 +99,11 @@ namespace Shameless
 			this.titlesListView.ListViewItemSorter = new CompareAscending(2);
 			this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
 
+			this.ResizeNameColumn();
+		}
+
+		private void ResizeNameColumn()
+		{
 			var size = 10*(int)Math.Ceiling(this.titlesListView.Items.Cast<ListViewItem>().Average(item => item.SubItems[2].Text.Length));
 
 			this.titlesListView.Columns[2].Width = size;
@@ -133,7 +143,12 @@ namespace Shameless
 
 			if (string.IsNullOrEmpty(this.searchBox.Text))
 			{
-				return;
+				if (this.titlesListView.Items.Count == this.allTitlesListView.Items.Count)
+				{
+					return;
+				}
+
+				// todo: find a faster way to refresh items (data binding)
 			}
 
 			this.titlesListView.BeginUpdate();
@@ -160,6 +175,7 @@ namespace Shameless
 			}
 
 			this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+			this.ResizeNameColumn();
 			this.titlesListView.EndUpdate();
 		}
 
@@ -309,10 +325,15 @@ namespace Shameless
 			return response;
 		}
 
-		private void delayTimer_Tick(object sender, EventArgs e)
+		private async void delayTimer_Tick(object sender, EventArgs e)
 		{
 			this.delayTimer.Stop();
-			this.SearchAsYouType();
+
+			this.currentTitleStatusLabel.Text = "Searching...";
+			this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+			await Task.Run(() => this.SearchAsYouType());
+			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+			this.currentTitleStatusLabel.Text = $"Found {this.titlesListView.Items.Count} items.";
 		}
 	}
 }
