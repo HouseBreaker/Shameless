@@ -59,5 +59,18 @@ namespace Shameless.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You&apos;re about to download a key database from 3ds.nfshost.com. The keys inside are kind of illegal.
+        ///
+        ///I am not liable for Nintendo coming to your house and putting little fuzzy pink handcuffs on you.
+        ///
+        ///Press OK to continue with downloading the database, or press Cancel to exit..
+        /// </summary>
+        internal static string Disclaimer {
+            get {
+                return ResourceManager.GetString("Disclaimer", resourceCulture);
+            }
+        }
     }
 }

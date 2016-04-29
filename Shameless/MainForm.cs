@@ -30,8 +30,8 @@ namespace Shameless
 
 		public MainForm()
 		{
-			// this.Font = new Font("Consolas", this.Font.Size, FontStyle.Regular);
 			this.InitializeComponent();
+
 			// ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
 		}
 
@@ -43,6 +43,13 @@ namespace Shameless
 
 			if (!File.Exists(Files.CsvPath))
 			{
+				var result = MessageBox.Show(Properties.Resources.Disclaimer, "boo", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+
+				if (result == DialogResult.Cancel)
+				{
+					Environment.Exit(0);
+				}
+
 				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 				this.UpdateAction("Downloading database...");
 				await Task.Run(() => DatabaseParser.DownloadDatabase(Files.DbPath));
@@ -276,10 +283,10 @@ namespace Shameless
 			var resultUrl = UploadToTempHost(path);
 
 			var writer = new BarcodeWriter
-			{
-				Format = BarcodeFormat.QR_CODE,
-				Options = new EncodingOptions { Height = 275, Width = 275 }
-			};
+							{
+								Format = BarcodeFormat.QR_CODE, 
+								Options = new EncodingOptions { Height = 275, Width = 275 }
+							};
 
 			var result = writer.Write(resultUrl);
 

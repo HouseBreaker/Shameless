@@ -107,11 +107,11 @@
 
 				if (!Nintendo3DSTitle.GetTitleType(titleId).Contains("System"))
 				{
-					var encKey = Regex.Match(entry[2], HexRegex32).Value.ToUpper();
+					var encKey = Regex.Match(entry[3], HexRegex32).Value.ToUpper();
 
 					if (!string.IsNullOrWhiteSpace(encKey))
 					{
-						var type = Regex.Match(entry[3], TagContentRegex).Value;
+						var type = Regex.Match(entry[5], TagContentRegex).Value;
 						type = FixType(type);
 
 						if (!string.IsNullOrWhiteSpace(type))
@@ -119,22 +119,22 @@
 							string name;
 
 							// if there's a new line in the name
-							var dualLineName = entry.Length == 8;
+							var dualLineName = entry.Length == 10;
 
 							if (dualLineName)
 							{
-								name = entry[4] + " " + entry[5];
+								name = entry[6] + " " + entry[7];
 							}
 							else
 							{
-								name = entry[4];
+								name = entry[6];
 							}
 
 							name = Regex.Match(name, TagContentRegex).Value.Trim();
 
 							if (!string.IsNullOrWhiteSpace(name))
 							{
-								var regionIndex = dualLineName ? 6 : 5;
+								var regionIndex = dualLineName ? 8 : 7;
 								var region = Regex.Match(entry[regionIndex], TagContentRegex).Value;
 
 								if (!string.IsNullOrWhiteSpace(region))
