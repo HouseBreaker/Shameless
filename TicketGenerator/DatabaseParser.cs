@@ -6,10 +6,12 @@
 	using System.IO;
 	using System.Linq;
 	using System.Net;
+	using System.Reflection;
 	using System.Text;
-	using System.Text.RegularExpressions;
 	using System.Threading;
 	using System.Web;
+
+	using HtmlAgilityPack;
 
 	public static class DatabaseParser
 	{
@@ -54,8 +56,7 @@
 			{
 				var tokens = line.Split(new[] { ',', '\"' }, StringSplitOptions.RemoveEmptyEntries);
 
-				tokens[2] = FixType(tokens[2]);
-
+				// tokens[2] = FixType(tokens[2]);
 				if (tokens.Length != 6)
 				{
 					// a terrible mess lies within this "if" statement
@@ -81,95 +82,32 @@
 
 		public static Nintendo3DSTitle[] ParseFromDatabase(string databasePath)
 		{
-			var html = File.ReadAllLines(databasePath);
+			var doc = new HtmlDocument();
+			doc.Load(databasePath, Encoding.UTF8);
 
-			html =
-				html.SkipWhile(a => a.Trim() != @"<th>Serial</th>")
-					.Skip(2)
-					.TakeWhile(a => a.Trim() != @"</table>")
-					.Select(a => a.Trim())
-					.ToArray();
+			Func<HtmlNode, string> titleData = node => HttpUtility.HtmlDecode(node.InnerText.Trim().Replace("\n", " "));
+
+			var descendants = doc.DocumentNode.Descendants("table").First().Descendants("tr").Skip(1);
+
+			descendants = descendants.Where(a => a.Descendants("td").All(b => !string.IsNullOrWhiteSpace(b.InnerText)));
 
 			var entries = new List<Nintendo3DSTitle>();
 
-			var startIndex = 0;
-			do
+			foreach (var descendant in descendants)
 			{
-				startIndex++;
+				var children = descendant.Descendants("td").ToArray();
 
-				var entry = html.Skip(startIndex).TakeWhile(a => a != "</tr>").Select(HttpUtility.HtmlDecode).ToArray();
+				var titleId = titleData(children[0]);
+				var encKey = titleData(children[2]);
+				var type = Nintendo3DSTitle.GetTitleType(titleId); // titleData(children[3]);
+				var name = titleData(children[4]);
+				var region = titleData(children[5]);
+				var serial = titleData(children[6]);
 
-				const string HexRegex16 = "[0-9ABCDEFabcdef]{16}";
-				const string HexRegex32 = "[0-9ABCDEFabcdef]{32}";
-				const string TagContentRegex = @"(?<=<td>).*(?=<\/td>)";
-
-				var titleId = Regex.Match(entry[0], HexRegex16).Value.ToUpper();
-
-				if (!Nintendo3DSTitle.GetTitleType(titleId).Contains("System"))
-				{
-					var encKey = Regex.Match(entry[3], HexRegex32).Value.ToUpper();
-
-					if (!string.IsNullOrWhiteSpace(encKey))
-					{
-						var type = Regex.Match(entry[5], TagContentRegex).Value;
-						type = FixType(type);
-
-						if (!string.IsNullOrWhiteSpace(type))
-						{
-							string name;
-
-							// if there's a new line in the name
-							var dualLineName = entry.Length == 10;
-
-							if (dualLineName)
-							{
-								name = entry[6] + " " + entry[7];
-							}
-							else
-							{
-								name = entry[6];
-							}
-
-							name = Regex.Match(name, TagContentRegex).Value.Trim();
-
-							if (!string.IsNullOrWhiteSpace(name))
-							{
-								var regionIndex = dualLineName ? 8 : 7;
-								var region = Regex.Match(entry[regionIndex], TagContentRegex).Value;
-
-								if (!string.IsNullOrWhiteSpace(region))
-								{
-									var serial = Regex.Match(entry[regionIndex + 1], TagContentRegex).Value;
-
-									if (!string.IsNullOrWhiteSpace(serial))
-									{
-										var result = new Nintendo3DSTitle(titleId, encKey, name, type, region, serial);
-										entries.Add(result);
-									}
-								}
-							}
-						}
-					}
-				}
-
-				startIndex = Array.IndexOf(html, "<tr>", startIndex);
+				entries.Add(new Nintendo3DSTitle(titleId.ToUpper(), encKey.ToUpper(), name, type, region, serial));
 			}
-			while (startIndex != -1);
 
 			return entries.ToArray();
-		}
-
-		public static string FixType(string type)
-		{
-			switch (type)
-			{
-				case "eShop/Application":
-					return "eShop";
-				case "Unknown":
-					return "DSIWare";
-				default:
-					return type;
-			}
 		}
 
 		public static void OnDownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)

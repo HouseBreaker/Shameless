@@ -31,7 +31,6 @@ namespace Shameless
 		public MainForm()
 		{
 			this.InitializeComponent();
-
 			// ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
 		}
 

@@ -4,7 +4,6 @@ namespace TicketGenerator
 {
 	using System.IO;
 	using System.Linq;
-	using System.Text;
 
 	using global::TicketGenerator.Properties;
 

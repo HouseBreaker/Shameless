@@ -5,14 +5,16 @@ namespace TicketGenerator
 	using System.IO;
 	using System.Linq;
 	using System.Reflection;
+	using System.Text;
 
 	public class TicketGeneratorMain
 	{
 		public static void Main(string[] args)
 		{
+			Console.OutputEncoding = Encoding.UTF8;
 			PrintProgramVersion();
 #if DEBUG
-			File.Delete(Files.DbPath);
+			// File.Delete(Files.DbPath);
 			File.Delete(Files.CsvPath);
 			if (Directory.Exists(Files.TicketsDir))
 			{
@@ -35,6 +37,7 @@ namespace TicketGenerator
 
 				if (!File.Exists(Files.DbPath))
 				{
+					Console.WriteLine("Downloading database...");
 					DatabaseParser.DownloadDatabase(Files.DbPath);
 				}
 

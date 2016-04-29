@@ -31,9 +31,9 @@
 
 		public static string GetTitleType(string titleId)
 		{
-			var titleTypes = new Dictionary<string, string>()
+			var titleTypes = new Dictionary<string, string>
 								{
-									{ "00040000", "3DS Game" },
+									{ "00040000", "eShop" },
 									{ "00040010", "System Application" },
 									{ "0004001B", "System Data Archive" },
 									{ "000400DB", "System Data Archive" },
@@ -42,11 +42,13 @@
 									{ "00040130", "System Module" },
 									{ "00040138", "System Firmware" },
 									{ "00040001", "Download Play Title" },
-									{ "00048000", "TWL Application" },
-									{ "00048005", "TWL System Application" },
-									{ "0004800F", "TWL System Data Archive" },
-									{ "00040002", "Game Demo" },
-									{ "0004008C", "Addon DLC" },
+									{ "00048005", "DSIWare System Application" },
+									{ "0004800F", "DSIWare System Data Archive" },
+									{ "00048000", "DSIWare" },
+									{ "00048004", "DSIWare" },
+									{ "0004000E", "Update" },
+									{ "00040002", "Demo" },
+									{ "0004008C", "DLC" },
 								};
 
 			var choppedTitleId = titleId.Substring(0, 8).ToUpper();
