@@ -17,7 +17,8 @@ This repository actually houses 2 programs - Shameless and TicketGenerator.
 ![Screenshot 2](http://i.imgur.com/6GW5ieQ.png)
 
 #Requirements
-An internet connection
+* An internet connection
+* FBI 2.1+
 
 #Usage
 1. Launch the program and let it prepare the database. Shouldn't take long, it's about a 1.5MB download.
