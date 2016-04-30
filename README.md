@@ -17,6 +17,7 @@ This repository actually houses 2 programs - Shameless and TicketGenerator.
 ![Screenshot 2](http://i.imgur.com/6GW5ieQ.png)
 
 #Requirements
+* .NET Framework 4.5.2 (unfortunately this means that Windows XP will not be supported. Sorry!)
 * An internet connection
 * FBI 2.1+
 
