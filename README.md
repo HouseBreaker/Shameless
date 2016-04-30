@@ -12,12 +12,12 @@ This repository actually houses 2 programs - Shameless and TicketGenerator.
 * TicketGenerator - a .NET console app which lets you generate valid tickets for installation with FBI.
 
 #Screenshots
-![Screenshot 1](http://i.imgur.com/QnaA9TH.png)
+![Screenshot 1](http://i.imgur.com/dFyi6lv.png)
 
-![Screenshot 2](http://i.imgur.com/6GW5ieQ.png)
+![Screenshot 2](http://i.imgur.com/jFabMKw.png)
 
 #Requirements
-* .NET Framework 4.5.2 (unfortunately this means that Windows XP will not be supported. Sorry!)
+* .NET Framework 4.5.2 (unfortunately this means that **Windows XP will not be supported**. Sorry!)
 * An internet connection
 * FBI 2.1+
 
