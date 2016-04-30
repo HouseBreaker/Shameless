@@ -43,16 +43,11 @@
 			this.typeHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.serialHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.searchBox = new System.Windows.Forms.TextBox();
-			this.allTitlesListView = new System.Windows.Forms.ListView();
-			this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.columnHeader7 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.generateQrCodeButton = new System.Windows.Forms.Button();
 			this.delayTimer = new System.Windows.Forms.Timer(this.components);
 			this.showSizeCheckbox = new System.Windows.Forms.CheckBox();
+			this.generateAllTicketsButton = new System.Windows.Forms.Button();
+			this.progressUpdater = new System.ComponentModel.BackgroundWorker();
 			this.statusStrip.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -90,7 +85,7 @@
 			// titlesCountLabel
 			// 
 			this.titlesCountLabel.Name = "titlesCountLabel";
-			this.titlesCountLabel.Size = new System.Drawing.Size(561, 17);
+			this.titlesCountLabel.Size = new System.Drawing.Size(592, 17);
 			this.titlesCountLabel.Spring = true;
 			this.titlesCountLabel.Text = "0 titles";
 			this.titlesCountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -154,59 +149,9 @@
 			this.searchBox.Size = new System.Drawing.Size(185, 20);
 			this.searchBox.TabIndex = 3;
 			this.searchBox.Text = "Search...";
-			this.searchBox.Click += new System.EventHandler(this.searchBox_Click);
+			this.searchBox.Click += new System.EventHandler(this.searchBox_Enter);
 			this.searchBox.TextChanged += new System.EventHandler(this.searchBox_TextChanged);
-			// 
-			// allTitlesListView
-			// 
-			this.allTitlesListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.allTitlesListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeader1,
-            this.columnHeader2,
-            this.columnHeader3,
-            this.columnHeader5,
-            this.columnHeader6,
-            this.columnHeader7});
-			this.allTitlesListView.FullRowSelect = true;
-			this.allTitlesListView.GridLines = true;
-			this.allTitlesListView.Location = new System.Drawing.Point(800, 12);
-			this.allTitlesListView.Name = "allTitlesListView";
-			this.allTitlesListView.Size = new System.Drawing.Size(12, 10);
-			this.allTitlesListView.TabIndex = 4;
-			this.allTitlesListView.UseCompatibleStateImageBehavior = false;
-			this.allTitlesListView.View = System.Windows.Forms.View.Details;
-			this.allTitlesListView.Visible = false;
-			// 
-			// columnHeader1
-			// 
-			this.columnHeader1.Text = "Title ID";
-			// 
-			// columnHeader2
-			// 
-			this.columnHeader2.Text = "Encrypted Title Key";
-			this.columnHeader2.Width = 108;
-			// 
-			// columnHeader3
-			// 
-			this.columnHeader3.Text = "Name";
-			this.columnHeader3.Width = 283;
-			// 
-			// columnHeader5
-			// 
-			this.columnHeader5.Text = "Region";
-			this.columnHeader5.Width = 63;
-			// 
-			// columnHeader6
-			// 
-			this.columnHeader6.Text = "Type";
-			this.columnHeader6.Width = 69;
-			// 
-			// columnHeader7
-			// 
-			this.columnHeader7.Text = "Serial";
-			this.columnHeader7.Width = 44;
+			this.searchBox.Enter += new System.EventHandler(this.searchBox_Enter);
 			// 
 			// generateQrCodeButton
 			// 
@@ -221,7 +166,6 @@
 			// 
 			// delayTimer
 			// 
-			this.delayTimer.Interval = 500;
 			this.delayTimer.Tick += new System.EventHandler(this.delayTimer_Tick);
 			// 
 			// showSizeCheckbox
@@ -235,14 +179,29 @@
 			this.showSizeCheckbox.Text = "Show size?";
 			this.showSizeCheckbox.UseVisualStyleBackColor = true;
 			// 
+			// generateAllTicketsButton
+			// 
+			this.generateAllTicketsButton.Location = new System.Drawing.Point(12, 403);
+			this.generateAllTicketsButton.Name = "generateAllTicketsButton";
+			this.generateAllTicketsButton.Size = new System.Drawing.Size(130, 23);
+			this.generateAllTicketsButton.TabIndex = 8;
+			this.generateAllTicketsButton.Text = "Generate all tickets";
+			this.generateAllTicketsButton.UseVisualStyleBackColor = true;
+			this.generateAllTicketsButton.Click += new System.EventHandler(this.generateAllTicketsButton_Click);
+			// 
+			// progressUpdater
+			// 
+			this.progressUpdater.WorkerReportsProgress = true;
+			this.progressUpdater.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.progressUpdater_ProgressChanged);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(824, 451);
+			this.Controls.Add(this.generateAllTicketsButton);
 			this.Controls.Add(this.showSizeCheckbox);
 			this.Controls.Add(this.generateQrCodeButton);
-			this.Controls.Add(this.allTitlesListView);
 			this.Controls.Add(this.searchBox);
 			this.Controls.Add(this.titlesListView);
 			this.Controls.Add(this.statusStrip);
@@ -270,20 +229,14 @@
 		private System.Windows.Forms.ColumnHeader typeHeader;
 		private System.Windows.Forms.ColumnHeader serialHeader;
 		private System.Windows.Forms.TextBox searchBox;
-
-		public System.Windows.Forms.ListView allTitlesListView;
-		private System.Windows.Forms.ColumnHeader columnHeader1;
-		private System.Windows.Forms.ColumnHeader columnHeader2;
-		private System.Windows.Forms.ColumnHeader columnHeader3;
-		private System.Windows.Forms.ColumnHeader columnHeader5;
-		private System.Windows.Forms.ColumnHeader columnHeader6;
-		private System.Windows.Forms.ColumnHeader columnHeader7;
 		private System.Windows.Forms.Button generateQrCodeButton;
 		private System.Windows.Forms.Timer delayTimer;
 		private System.Windows.Forms.ToolStripProgressBar statusProgressbar;
 		private System.Windows.Forms.ToolStripStatusLabel currentTitleStatusLabel;
 		private System.Windows.Forms.ToolStripStatusLabel titlesCountLabel;
 		private System.Windows.Forms.CheckBox showSizeCheckbox;
+		private System.Windows.Forms.Button generateAllTicketsButton;
+		private System.ComponentModel.BackgroundWorker progressUpdater;
 	}
 }
 

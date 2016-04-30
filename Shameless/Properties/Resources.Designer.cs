@@ -72,5 +72,14 @@ namespace Shameless.Properties {
                 return ResourceManager.GetString("Disclaimer", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AAEABNFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeDRXqXg0V6l4NFepeAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSb290LUNBMDAwMDAwMDMtWFMwMDAwMDAwYwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TikTemplate {
+            get {
+                return ResourceManager.GetString("TikTemplate", resourceCulture);
+            }
+        }
     }
 }

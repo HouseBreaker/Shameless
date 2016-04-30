@@ -2,20 +2,18 @@
 namespace Shameless
 {
 	using System;
+	using System.ComponentModel;
+	using System.Diagnostics;
 	using System.Drawing;
-	using System.Globalization;
 	using System.IO;
 	using System.Linq;
 	using System.Net;
 	using System.Reflection;
-	using System.Text;
 	using System.Threading.Tasks;
 	using System.Windows.Forms;
-
 	using Shameless.ColumnComparers;
-
-	using TicketGenerator;
-
+	using Shameless.Tickets;
+	using Utils;
 	using ZXing;
 	using ZXing.Common;
 
@@ -29,6 +27,10 @@ namespace Shameless
 
 		private bool searchBoxInitialized;
 
+		private Nintendo3DSTitle[] titles;
+
+		private string lastSearchTerm = string.Empty;
+
 		public MainForm()
 		{
 			this.InitializeComponent();
@@ -36,6 +38,8 @@ namespace Shameless
 
 		private async void MainForm_Shown(object sender, EventArgs e)
 		{
+			CheckForIllegalCrossThreadCalls = false; // eh
+
 			this.SetVersion();
 
 			ServicePointManager.ServerCertificateValidationCallback = (sender2, certificate, chain, sslPolicyErrors) => true;
@@ -70,12 +74,12 @@ namespace Shameless
 
 			this.UpdateAction($"Reading data from \"{Files.CsvPath}\"...");
 			this.titlesListView.BeginUpdate();
-			this.DeserializeCsv();
+			this.LoadDataCsv();
 			this.titlesListView.EndUpdate();
 
 			this.UpdateAction(string.Empty);
 			this.currentTitleStatusLabel.Text = string.Empty;
-			this.titlesCountLabel.Text = this.titlesListView.Items.Count + " titles";
+			this.titlesCountLabel.Text = this.titles.Length + " titles";
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 		}
 
@@ -93,17 +97,14 @@ namespace Shameless
 			this.currentActionLabel.Text = message;
 		}
 
-		private void DeserializeCsv()
+		private void LoadDataCsv()
 		{
-			var entries = DatabaseParser.ParseFromCsv(Files.CsvPath);
+			this.titles = DatabaseParser.ParseFromCsv(Files.CsvPath);
 
-			foreach (var title in entries)
+			foreach (var title in this.titles)
 			{
-				string[] row = { title.TitleId, title.EncKey, title.Name, title.Region, title.Type, title.Serial };
-				var listViewItem = new ListViewItem(row);
-
-				this.allTitlesListView.Items.Add(listViewItem);
-				this.titlesListView.Items.Add((ListViewItem)listViewItem.Clone());
+				title.Name = title.Name.RemoveTrademarks();
+				this.titlesListView.Items.Add(title.ToListViewItem());
 			}
 
 			this.titlesListView.ListViewItemSorter = new CompareAscending(2);
@@ -162,67 +163,63 @@ namespace Shameless
 
 		private void SearchAsYouType()
 		{
-			var foundItems = new ListView.ListViewItemCollection(this.titlesListView);
-
-			if (string.IsNullOrEmpty(this.searchBox.Text))
+			if (this.searchBox.Text == this.lastSearchTerm)
 			{
-				if (this.titlesListView.Items.Count == this.allTitlesListView.Items.Count)
-				{
-					return;
-				}
-
-				// todo: find a faster way to refresh items (data binding)
+				return;
 			}
 
-			this.titlesListView.BeginUpdate();
-
-			this.titlesListView.Items.Clear();
-
-			foreach (ListViewItem item in this.allTitlesListView.Items)
+			if (string.IsNullOrWhiteSpace(this.searchBox.Text) || this.searchBox.SelectedText == this.searchBox.Text)
 			{
-				var subItems = item.SubItems;
-
-				for (int i = 0; i < subItems.Count; i++)
+				if (this.titlesListView.Items.Count != this.titles.Length)
 				{
-					var isNotTitleKey = i != 1;
-					if (isNotTitleKey)
-					{
-						var subItem = RemoveDiacritics(subItems[i].Text);
-						if (subItem.IndexOf(this.searchBox.Text, 0, StringComparison.CurrentCultureIgnoreCase) != -1)
-						{
-							foundItems.Add((ListViewItem)item.Clone());
-							break;
-						}
-					}
+					var items = this.titles.Select(a => a.ToListViewItem()).ToArray();
+
+					this.titlesListView.BeginUpdate();
+
+					this.titlesListView.Items.Clear();
+					this.titlesListView.Items.AddRange(items);
+
+					this.titlesListView.EndUpdate();
+
+					this.lastSearchTerm = this.searchBox.Text;
 				}
+
+				return;
 			}
 
-			this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
-			this.ResizeNameColumn();
-			this.titlesListView.EndUpdate();
+			Func<string, string, bool> containsSubstring =
+				(x, y) => x.RemoveDiacritics().Contains(y, StringComparison.OrdinalIgnoreCase);
+
+			var foundTitles =
+				this.titles.Where(
+					a =>
+					containsSubstring(a.Name, this.searchBox.Text) || containsSubstring(a.TitleId, this.searchBox.Text)
+					|| containsSubstring(a.Serial, this.searchBox.Text)).ToArray();
+
+			if (foundTitles.Any())
+			{
+				this.titlesListView.BeginUpdate();
+
+				this.titlesListView.Items.Clear();
+
+				var titlesAsListViewItems = foundTitles.Select(a => a.ToListViewItem());
+
+				this.titlesListView.Items.AddRange(titlesAsListViewItems.ToArray());
+
+				this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
+				this.ResizeNameColumn();
+
+				this.titlesListView.EndUpdate();
+			}
+			else
+			{
+				MessageBox.Show("No titles found.");
+			}
+
+			this.lastSearchTerm = this.searchBox.Text;
 		}
 
-		/// <summary>
-		/// /http://stackoverflow.com/questions/359827/ignoring-accented-letters-in-string-comparison
-		/// </summary>
-		private static string RemoveDiacritics(string text)
-		{
-			string formD = text.Normalize(NormalizationForm.FormD);
-			StringBuilder sb = new StringBuilder();
-
-			foreach (char ch in formD)
-			{
-				UnicodeCategory uc = CharUnicodeInfo.GetUnicodeCategory(ch);
-				if (uc != UnicodeCategory.NonSpacingMark)
-				{
-					sb.Append(ch);
-				}
-			}
-
-			return sb.ToString().Normalize(NormalizationForm.FormC);
-		}
-
-		private void searchBox_Click(object sender, EventArgs e)
+		private void searchBox_Enter(object sender, EventArgs e)
 		{
 			if (!this.searchBoxInitialized)
 			{
@@ -263,7 +260,7 @@ namespace Shameless
 				{
 					this.UpdateAction("Getting title size...");
 					this.statusProgressbar.Style = ProgressBarStyle.Marquee;
-					size = await Task.Run(() => GetTitleSize(titleId));
+					size = await Task.Run(() => CDNUtils.GetTitleSize(titleId));
 					this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 				}
 
@@ -274,50 +271,6 @@ namespace Shameless
 			}
 
 			this.currentTitleStatusLabel.Text = string.Empty;
-		}
-
-		private static long GetTitleSize(string titleId)
-		{
-			// translated from FunKeyCIA
-			var cdnUrl = "http://ccs.cdn.c.shop.nintendowifi.net/ccs/download/" + titleId.ToUpper();
-
-			byte[] tmd;
-
-			using (var client = new WebClient())
-			{
-				tmd = client.DownloadData(cdnUrl + "/tmd");
-			}
-
-			const int TikOffset = 0x140;
-
-			var contentCount = Convert.ToInt32(BitConversion.BytesToHex(tmd.Skip(TikOffset + 0x9E).Take(2)), 16);
-
-			long size = 0;
-
-			for (int i = 0; i < contentCount; i++)
-			{
-				var cOffs = 0xB04 + 0x30 * i;
-				var contentId = BitConversion.BytesToHex(tmd.Skip(cOffs).Take(4));
-
-				try
-				{
-					var req = WebRequest.Create(cdnUrl + "/" + contentId);
-
-					using (var resp = req.GetResponse())
-					{
-						long currentSize;
-						if (long.TryParse(resp.Headers.Get("Content-Length"), out currentSize))
-						{
-							size += currentSize;
-						}
-					}
-				}
-				catch (WebException)
-				{
-				}
-			}
-
-			return size;
 		}
 
 		private static QrResult MakeTicketIntoQrCode(string path)
@@ -352,11 +305,97 @@ namespace Shameless
 		{
 			this.delayTimer.Stop();
 
-			this.currentTitleStatusLabel.Text = "Searching...";
-			this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+			if (!string.IsNullOrWhiteSpace(this.searchBox.Text))
+			{
+				this.UpdateAction("Searching...");
+				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+			}
+
 			await Task.Run(() => this.SearchAsYouType());
+
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
-			this.currentTitleStatusLabel.Text = $"Found {this.titlesListView.Items.Count} items.";
+
+			if (this.titlesListView.Items.Count != this.titles.Length)
+			{
+				this.UpdateAction($"Found {this.titlesListView.Items.Count} items.");
+			}
+			else
+			{
+				this.UpdateAction(string.Empty);
+			}
+		}
+
+		private async void generateAllTicketsButton_Click(object sender, EventArgs e)
+		{
+			var result = MessageBox.Show(
+				$"{this.titles.Length} tickets are about to be generated. Continue?", 
+				"Ticket generation", 
+				MessageBoxButtons.YesNo);
+
+			if (result == DialogResult.Yes)
+			{
+				var dialog = new FolderBrowserDialog
+								{
+									SelectedPath = Environment.CurrentDirectory, 
+									Description = "Folder where tickets will be outputted."
+								};
+
+				var dialogResult = dialog.ShowDialog(this);
+
+				if (dialogResult == DialogResult.OK)
+				{
+					await Task.Run(() => this.GenerateTickets(this.titles, dialog.SelectedPath));
+					MessageBox.Show(
+						$"Successfully generated tickets at\r\n{dialog.SelectedPath}\\tickets", 
+						"Success", 
+						MessageBoxButtons.OK, 
+						MessageBoxIcon.Information);
+				}
+			}
+		}
+
+		private void GenerateTickets(Nintendo3DSTitle[] entries, string outputDir)
+		{
+			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+
+			Directory.CreateDirectory(outputDir);
+
+			var types = entries.Select(a => a.Type).Distinct().ToList();
+
+			var total = entries.Length;
+			var processed = 0;
+
+			// todo: remove these when done
+			var timer = new Stopwatch();
+			timer.Start();
+
+			foreach (var type in types)
+			{
+				var ticketOutputPath = "tickets" + "\\" + type;
+				Directory.CreateDirectory(ticketOutputPath);
+
+				var filtered = entries.Where(a => a.Type == type).ToArray();
+
+				foreach (var title in filtered)
+				{
+					TicketGenerator.GenerateTicket(title, $"{title.Name} ({title.Serial}).tik", $"{ticketOutputPath}\\{title.Region}");
+
+					processed++;
+
+					var percentageDone = (int)Math.Ceiling((double)processed / total * 100);
+
+					if (percentageDone != this.statusProgressbar.Value)
+					{
+						this.progressUpdater.ReportProgress(percentageDone, new[] { processed, total });
+					}
+				}
+			}
+		}
+
+		private void progressUpdater_ProgressChanged(object sender, ProgressChangedEventArgs e)
+		{
+			this.statusProgressbar.Value = e.ProgressPercentage;
+			this.UpdateAction($"{e.ProgressPercentage}%");
 		}
 	}
 }
