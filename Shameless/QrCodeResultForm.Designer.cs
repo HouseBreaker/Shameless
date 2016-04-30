@@ -111,6 +111,7 @@
 			this.Name = "QrCodeResultForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "QR Code";
+			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.QrCodeResultForm_KeyDown);
 			((System.ComponentModel.ISupportInitialize)(this.qrCodeBox)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();

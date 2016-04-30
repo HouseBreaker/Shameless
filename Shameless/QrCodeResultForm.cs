@@ -32,5 +32,13 @@
 
 			return $"{actualSize:0.##} {sizes[order]}";
 		}
+
+		private void QrCodeResultForm_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Escape)
+			{
+				this.Close();
+			}
+		}
 	}
 }
