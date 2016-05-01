@@ -181,6 +181,7 @@
 			// 
 			// generateAllTicketsButton
 			// 
+			this.generateAllTicketsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.generateAllTicketsButton.Location = new System.Drawing.Point(12, 403);
 			this.generateAllTicketsButton.Name = "generateAllTicketsButton";
 			this.generateAllTicketsButton.Size = new System.Drawing.Size(130, 23);
