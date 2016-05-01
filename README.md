@@ -19,13 +19,12 @@ This repository actually houses 2 programs - Shameless and TicketGenerator.
 #Requirements
 * .NET Framework 4.5.2 (unfortunately this means that **Windows XP will not be supported**. Sorry!)
 * An internet connection
-* FBI 2.1+
+* FBI 2.2+
 
 #Usage
-1. Launch the program and let it prepare the database. Shouldn't take long, it's about a 1.5MB download.
+1. Launch the program and let it prepare the database. Shouldn't take long, it's about a ~0.3MB download.
 2. Select a title and press "Generate QR Code for FBI". Optionally check "Show size?" to get info about how big the title is from the Nintendo CDN. (this will be either instant or it will take a long time, this is why I made it optional).
-3. Scan the QR code with FBI's QR Code install option in the main menu, it will hopefully install the ticket.
-4. Go to Tickets in FBI on the main screen, look up the TitleID of the title, select it and select Install from CDN
+3. Scan the QR code with FBI's QR Code install option in the main menu, it will hopefully install the ticket. It will then ask if you would like to install the contents from the Nintendo CDN. Click "Yes".
 
 #Credits
 [FunKeyCia](https://github.com/llakssz/FunKeyCIA/blob/master/FunKeyCIA.py#L162-L204) - for CDN info code I translated from Python
