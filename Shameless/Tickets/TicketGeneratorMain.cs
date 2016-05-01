@@ -1,4 +1,6 @@
-﻿// ReSharper disable LocalizableElement
+﻿/*
+
+// ReSharper disable LocalizableElement
 namespace Shameless.Tickets
 {
 	using System;
@@ -104,3 +106,5 @@ namespace Shameless.Tickets
 		}
 	}
 }
+
+*/

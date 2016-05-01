@@ -9,8 +9,8 @@
 	{
 		public Nintendo3DSTitle(string titleId, string encKey, string name, string type, string region, string serial)
 		{
-			this.TitleId = titleId;
-			this.EncKey = encKey;
+			this.TitleId = titleId.ToUpper();
+			this.EncKey = encKey.ToUpper();
 			this.Name = name;
 			this.Type = type;
 			this.Region = region;

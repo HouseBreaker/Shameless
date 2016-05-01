@@ -3,7 +3,6 @@ namespace Shameless
 {
 	using System;
 	using System.ComponentModel;
-	using System.Diagnostics;
 	using System.Drawing;
 	using System.IO;
 	using System.Linq;
@@ -16,8 +15,6 @@ namespace Shameless
 	using Utils;
 	using ZXing;
 	using ZXing.Common;
-
-	using Files = Shameless.Resources.Files;
 
 	public partial class MainForm : Form
 	{
@@ -38,15 +35,13 @@ namespace Shameless
 
 		private async void MainForm_Shown(object sender, EventArgs e)
 		{
-			CheckForIllegalCrossThreadCalls = false; // eh
-
 			this.SetVersion();
 
 			ServicePointManager.ServerCertificateValidationCallback = (sender2, certificate, chain, sslPolicyErrors) => true;
 
 			this.currentTitleStatusLabel.Text = string.Empty;
 
-			if (!File.Exists(Files.CsvPath))
+			if (!File.Exists(Files.DbPath))
 			{
 				var result = MessageBox.Show(
 					Properties.Resources.Disclaimer, 
@@ -62,20 +57,13 @@ namespace Shameless
 				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 				this.UpdateAction("Downloading database...");
 				await Task.Run(() => DatabaseParser.DownloadDatabase(Files.DbPath));
-
-				this.UpdateAction("Parsing Database...");
-				var titles = await Task.Run(() => DatabaseParser.ParseFromDatabase(Files.DbPath));
-
-				File.Delete("db.html");
-
-				this.UpdateAction($"Writing data to \"{Files.CsvPath}\"...");
-				await Task.Run(() => DatabaseParser.WriteCsvData(titles, Files.CsvPath));
 			}
+			
+			this.UpdateAction($"Reading data from \"{Files.DbPath}\"...");
+			this.DeserializeJson();
 
-			this.UpdateAction($"Reading data from \"{Files.CsvPath}\"...");
-			this.titlesListView.BeginUpdate();
-			this.LoadDataCsv();
-			this.titlesListView.EndUpdate();
+			this.UpdateAction($"Prettifying JSON in \"{Files.DbPath}\"...");
+			File.WriteAllText(Files.DbPath, JsonPrettifier.FormatJson(File.ReadAllText(Files.DbPath)));
 
 			this.UpdateAction(string.Empty);
 			this.currentTitleStatusLabel.Text = string.Empty;
@@ -97,10 +85,12 @@ namespace Shameless
 			this.currentActionLabel.Text = message;
 		}
 
-		private void LoadDataCsv()
+		private void DeserializeJson()
 		{
-			this.titles = DatabaseParser.ParseFromCsv(Files.CsvPath);
+			this.titles = DatabaseParser.ParseFromDatabase(Files.DbPath);
 
+			this.titlesListView.BeginUpdate();
+			
 			foreach (var title in this.titles)
 			{
 				title.Name = title.Name.RemoveTrademarks();
@@ -111,6 +101,8 @@ namespace Shameless
 			this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
 
 			this.ResizeNameColumn();
+
+			this.titlesListView.EndUpdate();
 		}
 
 		private void ResizeNameColumn()
@@ -365,10 +357,6 @@ namespace Shameless
 			var total = entries.Length;
 			var processed = 0;
 
-			// todo: remove these when done
-			var timer = new Stopwatch();
-			timer.Start();
-
 			foreach (var type in types)
 			{
 				var ticketOutputPath = "tickets" + "\\" + type;
@@ -395,7 +383,7 @@ namespace Shameless
 		private void progressUpdater_ProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
 			this.statusProgressbar.Value = e.ProgressPercentage;
-			this.UpdateAction($"{e.ProgressPercentage}%");
+			this.UpdateAction($"Generating tickets: {e.ProgressPercentage}%");
 		}
 	}
 }

@@ -60,13 +60,13 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="HtmlAgilityPack, Version=1.4.6.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\TicketGenerator\libs\HtmlAgilityPack.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>libs\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -98,9 +98,8 @@
       <DependentUpon>QrCodeResultForm.cs</DependentUpon>
     </Compile>
     <Compile Include="QrResult.cs" />
-    <Compile Include="Resources\Files.cs" />
     <Compile Include="Tickets\DatabaseParser.cs" />
-    <Compile Include="Tickets\Files.cs" />
+    <Compile Include="Resources\Files.cs" />
     <Compile Include="Tickets\Nintendo3DSTitle.cs" />
     <Compile Include="Tickets\TicketGenerator.cs" />
     <Compile Include="Tickets\TicketGeneratorMain.cs" />
@@ -108,6 +107,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\BitConversion.cs" />
     <Compile Include="Utils\CDNUtils.cs" />
+    <Compile Include="Utils\JsonPrettifier.cs" />
     <Compile Include="Utils\StringExtensions.cs" />
     <Compile Include="Utils\TitleExtensions.cs" />
     <EmbeddedResource Include="MainForm.resx">
@@ -126,6 +126,7 @@
     <EmbeddedResource Include="QrCodeResultForm.resx">
       <DependentUpon>QrCodeResultForm.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="db.json" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
