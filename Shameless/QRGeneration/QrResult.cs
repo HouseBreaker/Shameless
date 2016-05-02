@@ -1,4 +1,4 @@
-﻿namespace Shameless
+﻿namespace Shameless.QRGeneration
 {
 	using System.Drawing;
 

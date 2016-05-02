@@ -25,10 +25,10 @@
 			var entries = from title in titles
 						  let titleId = value(title["titleID"])
 						  let type = Nintendo3DSTitle.GetTitleType(value(titleId))
-						  where !type.Contains("System")
+						  // where !type.Contains("System")
 						  let encKey = value(title["encTitleKey"])
 						  let name = value(title["name"]).Trim()
-						  where !string.IsNullOrWhiteSpace(encKey) && !string.IsNullOrWhiteSpace(name)
+						  where !string.IsNullOrWhiteSpace(encKey)// && !string.IsNullOrWhiteSpace(name)
 						  let region = value(title["region"])
 						  let serial = value(title["serial"])
 						  select new Nintendo3DSTitle(titleId, encKey, name, type, region, serial);

@@ -109,6 +109,7 @@
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.ImeMode = System.Windows.Forms.ImeMode.Off;
 			this.Name = "QrCodeResultForm";
+			this.ShowIcon = false;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
 			this.Text = "QR Code";
 			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.QrCodeResultForm_KeyDown);

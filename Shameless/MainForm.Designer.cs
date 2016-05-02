@@ -48,6 +48,7 @@
 			this.showSizeCheckbox = new System.Windows.Forms.CheckBox();
 			this.generateAllTicketsButton = new System.Windows.Forms.Button();
 			this.progressUpdater = new System.ComponentModel.BackgroundWorker();
+			this.filterButton = new System.Windows.Forms.Button();
 			this.statusStrip.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -104,6 +105,7 @@
             this.serialHeader});
 			this.titlesListView.FullRowSelect = true;
 			this.titlesListView.GridLines = true;
+			this.titlesListView.HideSelection = false;
 			this.titlesListView.Location = new System.Drawing.Point(12, 41);
 			this.titlesListView.Name = "titlesListView";
 			this.titlesListView.Size = new System.Drawing.Size(800, 356);
@@ -156,6 +158,7 @@
 			// generateQrCodeButton
 			// 
 			this.generateQrCodeButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.generateQrCodeButton.Enabled = false;
 			this.generateQrCodeButton.Location = new System.Drawing.Point(668, 403);
 			this.generateQrCodeButton.Name = "generateQrCodeButton";
 			this.generateQrCodeButton.Size = new System.Drawing.Size(144, 23);
@@ -182,6 +185,7 @@
 			// generateAllTicketsButton
 			// 
 			this.generateAllTicketsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.generateAllTicketsButton.Enabled = false;
 			this.generateAllTicketsButton.Location = new System.Drawing.Point(12, 403);
 			this.generateAllTicketsButton.Name = "generateAllTicketsButton";
 			this.generateAllTicketsButton.Size = new System.Drawing.Size(130, 23);
@@ -195,11 +199,24 @@
 			this.progressUpdater.WorkerReportsProgress = true;
 			this.progressUpdater.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.progressUpdater_ProgressChanged);
 			// 
+			// filterButton
+			// 
+			this.filterButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.filterButton.Enabled = false;
+			this.filterButton.Location = new System.Drawing.Point(148, 403);
+			this.filterButton.Name = "filterButton";
+			this.filterButton.Size = new System.Drawing.Size(49, 23);
+			this.filterButton.TabIndex = 9;
+			this.filterButton.Text = "Filter";
+			this.filterButton.UseVisualStyleBackColor = true;
+			this.filterButton.Click += new System.EventHandler(this.filterButton_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(824, 451);
+			this.Controls.Add(this.filterButton);
 			this.Controls.Add(this.generateAllTicketsButton);
 			this.Controls.Add(this.showSizeCheckbox);
 			this.Controls.Add(this.generateQrCodeButton);
@@ -238,6 +255,7 @@
 		private System.Windows.Forms.CheckBox showSizeCheckbox;
 		private System.Windows.Forms.Button generateAllTicketsButton;
 		private System.ComponentModel.BackgroundWorker progressUpdater;
+		private System.Windows.Forms.Button filterButton;
 	}
 }
 

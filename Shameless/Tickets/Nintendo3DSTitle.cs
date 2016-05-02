@@ -4,16 +4,19 @@
 	using System.Collections;
 	using System.Collections.Generic;
 
+	using Shameless.Utils;
+
 	// ReSharper disable once InconsistentNaming
 	public class Nintendo3DSTitle : IEnumerable<string>
 	{
 		public Nintendo3DSTitle(string titleId, string encKey, string name, string type, string region, string serial)
 		{
+			// validation in the constructor and not in the properties. my uni would be so proud.
 			this.TitleId = titleId.ToUpper();
 			this.EncKey = encKey.ToUpper();
-			this.Name = name;
+			this.Name = string.IsNullOrWhiteSpace(name) ? "Unknown" : name.RemoveTrademarks();
 			this.Type = type;
-			this.Region = region;
+			this.Region = string.IsNullOrWhiteSpace(region) ? "Unknown" : region;
 			this.Serial = serial;
 		}
 
@@ -21,7 +24,7 @@
 
 		public string EncKey { get; }
 
-		public string Name { get; set; }
+		public string Name { get; }
 
 		public string Type { get; }
 
@@ -65,11 +68,6 @@
 		{
 			var other = obj as Nintendo3DSTitle;
 			return this.TitleId.Equals(other.TitleId, StringComparison.OrdinalIgnoreCase);
-		}
-
-		public bool Equals(Nintendo3DSTitle other)
-		{
-			return string.Equals(this.TitleId, other.TitleId, StringComparison.OrdinalIgnoreCase);
 		}
 
 		public override int GetHashCode()

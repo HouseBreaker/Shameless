@@ -3,18 +3,20 @@ namespace Shameless
 {
 	using System;
 	using System.ComponentModel;
-	using System.Drawing;
 	using System.IO;
 	using System.Linq;
 	using System.Net;
 	using System.Reflection;
 	using System.Threading.Tasks;
 	using System.Windows.Forms;
+
 	using Shameless.ColumnComparers;
+	using Shameless.QRGeneration;
+	using Shameless.Resources;
 	using Shameless.Tickets;
+	using Shameless.TitleFiltering;
+
 	using Utils;
-	using ZXing;
-	using ZXing.Common;
 
 	public partial class MainForm : Form
 	{
@@ -26,6 +28,10 @@ namespace Shameless
 
 		private Nintendo3DSTitle[] titles;
 
+		private Nintendo3DSTitle[] allTitles;
+
+		private TitleFilter titleFilter = new TitleFilter();
+
 		private string lastSearchTerm = string.Empty;
 
 		public MainForm()
@@ -36,7 +42,7 @@ namespace Shameless
 		private async void MainForm_Shown(object sender, EventArgs e)
 		{
 			this.SetVersion();
-
+			
 			ServicePointManager.ServerCertificateValidationCallback = (sender2, certificate, chain, sslPolicyErrors) => true;
 
 			this.currentTitleStatusLabel.Text = string.Empty;
@@ -57,18 +63,33 @@ namespace Shameless
 				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 				this.UpdateAction("Downloading database...");
 				await Task.Run(() => DatabaseParser.DownloadDatabase(Files.DbPath));
+
+				this.UpdateAction($"Prettifying JSON in \"{Files.DbPath}\"...");
+				File.WriteAllText(Files.DbPath, JsonPrettifier.FormatJson(File.ReadAllText(Files.DbPath)));
 			}
-			
+
 			this.UpdateAction($"Reading data from \"{Files.DbPath}\"...");
-			this.DeserializeJson();
+			this.allTitles = DatabaseParser.ParseFromDatabase(Files.DbPath);
 
-			this.UpdateAction($"Prettifying JSON in \"{Files.DbPath}\"...");
-			File.WriteAllText(Files.DbPath, JsonPrettifier.FormatJson(File.ReadAllText(Files.DbPath)));
+			if (File.Exists(Files.FilterPath))
+			{
+				this.titleFilter = TitleFilterStorage.ParseFilterSettings(Files.FilterPath);
+			}
 
+			await this.FilterTitlesAndUpdate();
+
+			// this.UpdateAction("Sorting...");
+			// this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+			// this.titlesListView.ListViewItemSorter = new CompareAscending(2);
+			// this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 			this.UpdateAction(string.Empty);
 			this.currentTitleStatusLabel.Text = string.Empty;
 			this.titlesCountLabel.Text = this.titles.Length + " titles";
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+
+			this.generateAllTicketsButton.Enabled = true;
+			this.filterButton.Enabled = true;
+			this.generateQrCodeButton.Enabled = true;
 		}
 
 		private void SetVersion()
@@ -85,24 +106,35 @@ namespace Shameless
 			this.currentActionLabel.Text = message;
 		}
 
-		private void DeserializeJson()
+		private void UpdateTitlesList(Nintendo3DSTitle[] titles)
 		{
-			this.titles = DatabaseParser.ParseFromDatabase(Files.DbPath);
-
+#if DEBUG
+			var st = new Stopwatch();
+			st.Start();
+#endif
 			this.titlesListView.BeginUpdate();
-			
-			foreach (var title in this.titles)
+
+			this.titlesListView.Sorting = SortOrder.None;
+
+			this.titlesListView.Items.Clear();
+
+			foreach (var title in titles)
 			{
-				title.Name = title.Name.RemoveTrademarks();
 				this.titlesListView.Items.Add(title.ToListViewItem());
 			}
 
-			this.titlesListView.ListViewItemSorter = new CompareAscending(2);
 			this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
 
+			this.titlesListView.ListViewItemSorter = new CompareAscending(2);
+			this.titlesListView.AutoSize = true;
 			this.ResizeNameColumn();
 
 			this.titlesListView.EndUpdate();
+#if DEBUG
+			st.Stop();
+
+			MessageBox.Show($"Time to update titles list: {st.ElapsedMilliseconds}ms");
+#endif
 		}
 
 		private void ResizeNameColumn()
@@ -164,44 +196,24 @@ namespace Shameless
 			{
 				if (this.titlesListView.Items.Count != this.titles.Length)
 				{
-					var items = this.titles.Select(a => a.ToListViewItem()).ToArray();
-
-					this.titlesListView.BeginUpdate();
-
-					this.titlesListView.Items.Clear();
-					this.titlesListView.Items.AddRange(items);
-
-					this.titlesListView.EndUpdate();
-
+					this.UpdateTitlesList(this.titles);
 					this.lastSearchTerm = this.searchBox.Text;
 				}
 
 				return;
 			}
 
-			Func<string, string, bool> containsSubstring =
-				(x, y) => x.RemoveDiacritics().Contains(y, StringComparison.OrdinalIgnoreCase);
+			Func<string, string, bool> containsSubstring = (x, y) => x.Contains(y, StringComparison.OrdinalIgnoreCase);
 
 			var foundTitles =
 				this.titles.Where(
 					a =>
-					containsSubstring(a.Name, this.searchBox.Text) || containsSubstring(a.TitleId, this.searchBox.Text)
-					|| containsSubstring(a.Serial, this.searchBox.Text)).ToArray();
+					containsSubstring(a.Name.RemoveDiacritics(), this.searchBox.Text)
+					|| containsSubstring(a.TitleId, this.searchBox.Text) || containsSubstring(a.Serial, this.searchBox.Text)).ToArray();
 
 			if (foundTitles.Any())
 			{
-				this.titlesListView.BeginUpdate();
-
-				this.titlesListView.Items.Clear();
-
-				var titlesAsListViewItems = foundTitles.Select(a => a.ToListViewItem());
-
-				this.titlesListView.Items.AddRange(titlesAsListViewItems.ToArray());
-
-				this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
-				this.ResizeNameColumn();
-
-				this.titlesListView.EndUpdate();
+				this.UpdateTitlesList(foundTitles);
 			}
 			else
 			{
@@ -241,7 +253,7 @@ namespace Shameless
 
 				this.UpdateAction("Generating ticket...");
 				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
-				var result = await Task.Run(() => MakeTicketIntoQrCode(TicketGenerator.SanitizeFileName(ticketFileName)));
+				var result = await Task.Run(() => QrUtils.MakeTicketIntoQrCode(TicketGenerator.SanitizeFileName(ticketFileName)));
 				this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 
 				File.Delete(TicketGenerator.SanitizeFileName(ticketFileName));
@@ -263,34 +275,6 @@ namespace Shameless
 			}
 
 			this.currentTitleStatusLabel.Text = string.Empty;
-		}
-
-		private static QrResult MakeTicketIntoQrCode(string path)
-		{
-			var resultUrl = UploadToTempHost(path);
-
-			var writer = new BarcodeWriter
-							{
-								Format = BarcodeFormat.QR_CODE, 
-								Options = new EncodingOptions { Height = 275, Width = 275 }
-							};
-
-			var result = writer.Write(resultUrl);
-
-			var qrResult = new QrResult(resultUrl, new Bitmap(result));
-			return qrResult;
-		}
-
-		private static string UploadToTempHost(string path)
-		{
-			string response;
-			using (var client = new WebClient())
-			{
-				var responseBytes = client.UploadFile("https://uguu.se/api.php?d=upload-tool", path);
-				response = client.Encoding.GetString(responseBytes);
-			}
-
-			return response;
 		}
 
 		private async void delayTimer_Tick(object sender, EventArgs e)
@@ -320,7 +304,7 @@ namespace Shameless
 		private async void generateAllTicketsButton_Click(object sender, EventArgs e)
 		{
 			var result = MessageBox.Show(
-				$"{this.titles.Length} tickets are about to be generated. Continue?", 
+				$"Warning: Only tickets with the current filter applied will be generated.\r\n\r\n{this.titles.Length} tickets are about to be generated. Continue?", 
 				"Ticket generation", 
 				MessageBoxButtons.YesNo);
 
@@ -384,6 +368,38 @@ namespace Shameless
 		{
 			this.statusProgressbar.Value = e.ProgressPercentage;
 			this.UpdateAction($"Generating tickets: {e.ProgressPercentage}%");
+		}
+
+		private async void filterButton_Click(object sender, EventArgs e)
+		{
+			var dialog = new FilterDialog(this.titleFilter.Clone());
+			var result = dialog.ShowDialog();
+
+			if (result == DialogResult.OK)
+			{
+				if (!dialog.TitleFilter.Equals(this.titleFilter))
+				{
+					this.titleFilter = dialog.TitleFilter.Clone();
+					TitleFilterStorage.WriteFilterSettings(this.titleFilter, Files.FilterPath);
+
+					await this.FilterTitlesAndUpdate();
+				}
+			}
+		}
+
+		private async Task FilterTitlesAndUpdate()
+		{
+			this.UpdateAction("Filtering...");
+			this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+
+			await Task.Run(() => this.titles = TitleFilter.FilterTitles(this.allTitles, this.titleFilter));
+
+			this.UpdateAction("Updating title list...");
+			await Task.Run(() => this.UpdateTitlesList(this.titles));
+
+			this.UpdateAction(string.Empty);
+			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+			this.titlesCountLabel.Text = $"{this.titlesListView.Items.Count} titles";
 		}
 	}
 }
