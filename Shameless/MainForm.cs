@@ -26,6 +26,8 @@ namespace Shameless
 
 		private bool searchBoxInitialized;
 
+		private bool isSearching;
+
 		private Nintendo3DSTitle[] titles;
 
 		private Nintendo3DSTitle[] allTitles;
@@ -185,6 +187,38 @@ namespace Shameless
 			this.delayTimer.Start();
 		}
 
+		private async void delayTimer_Tick(object sender, EventArgs e)
+		{
+			this.delayTimer.Stop();
+
+			if (this.isSearching)
+			{
+				return;
+			}
+			this.isSearching = true;
+
+			if (!string.IsNullOrWhiteSpace(this.searchBox.Text))
+			{
+				this.UpdateAction("Searching...");
+				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+			}
+
+			await Task.Run(() => this.SearchAsYouType());
+
+			this.isSearching = false;
+
+			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+
+			if (this.titlesListView.Items.Count != this.titles.Length)
+			{
+				this.UpdateAction($"Found {this.titlesListView.Items.Count} items.");
+			}
+			else
+			{
+				this.UpdateAction(string.Empty);
+			}
+		}
+
 		private void SearchAsYouType()
 		{
 			if (this.searchBox.Text == this.lastSearchTerm)
@@ -277,29 +311,7 @@ namespace Shameless
 			this.currentTitleStatusLabel.Text = string.Empty;
 		}
 
-		private async void delayTimer_Tick(object sender, EventArgs e)
-		{
-			this.delayTimer.Stop();
-
-			if (!string.IsNullOrWhiteSpace(this.searchBox.Text))
-			{
-				this.UpdateAction("Searching...");
-				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
-			}
-
-			await Task.Run(() => this.SearchAsYouType());
-
-			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
-
-			if (this.titlesListView.Items.Count != this.titles.Length)
-			{
-				this.UpdateAction($"Found {this.titlesListView.Items.Count} items.");
-			}
-			else
-			{
-				this.UpdateAction(string.Empty);
-			}
-		}
+		
 
 		private async void generateAllTicketsButton_Click(object sender, EventArgs e)
 		{
