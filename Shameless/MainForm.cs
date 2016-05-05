@@ -47,9 +47,6 @@ namespace Shameless
 		{
 			this.SetVersion();
 
-			// ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-			// ServicePointManager.ServerCertificateValidationCallback = (sender2, certificate, chain, sslPolicyErrors) => true;
 			this.currentTitleStatusLabel.Text = string.Empty;
 
 			if (!File.Exists(Files.DbPath))
