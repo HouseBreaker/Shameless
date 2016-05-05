@@ -1,39 +1,45 @@
 ﻿namespace Shameless.QRGeneration
 {
+	using System.Collections.Generic;
 	using System.Drawing;
+	using System.Linq;
 	using System.Net;
+
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Linq;
 
 	using ZXing;
 	using ZXing.Common;
 
 	public static class QrUtils
 	{
-		public static QrResult MakeTicketIntoQrCode(string path)
+		public static QrResult MakeUrlIntoQrCode(string url)
 		{
-			var resultUrl = UploadToTempHost(path);
-
 			var writer = new BarcodeWriter
 			{
 				Format = BarcodeFormat.QR_CODE,
-				Options = new EncodingOptions { Height = 275, Width = 275 }
+				Options = new EncodingOptions { Height = 325, Width = 325 }
 			};
 
-			var result = writer.Write(resultUrl);
+			var result = writer.Write(url);
 
-			var qrResult = new QrResult(resultUrl, new Bitmap(result));
+			var qrResult = new QrResult(url, new Bitmap(result));
 			return qrResult;
 		}
 
-		private static string UploadToTempHost(string path)
+		public static string Shorten(string url)
 		{
-			string response;
+			string shortUrl;
+
 			using (var client = new WebClient())
 			{
-				var responseBytes = client.UploadFile("https://uguu.se/api.php?d=upload-tool", path);
-				response = client.Encoding.GetString(responseBytes);
+				var response = client.DownloadString($"https://hec.su/api?url={url}");
+				var json = (JObject)JsonConvert.DeserializeObject(response);
+
+				shortUrl = json["short"].Value<string>();
 			}
 
-			return response;
+			return shortUrl;
 		}
 	}
 }
