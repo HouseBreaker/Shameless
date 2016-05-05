@@ -34,7 +34,7 @@
 
 		public static string RemoveTrademarks(this string source)
 		{
-			var trademarks = new[] { '™', '®', '®', '\n' };
+			var trademarks = new[] { '™', '®', '®' };
 
 			var sb = new StringBuilder();
 
