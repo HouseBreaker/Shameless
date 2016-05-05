@@ -37,6 +37,27 @@
 			File.WriteAllBytes($"{outputDir}\\{fileName}", ticket);
 		}
 
+		public static byte[] GenerateTicket(Nintendo3DSTitle title)
+		{
+			var ticket = Convert.FromBase64String(Resources.TikTemplate);
+			var titleId = BitConversion.HexToBytes(title.TitleId);
+			var titleKey = BitConversion.HexToBytes(title.EncKey);
+
+			const int TitleKeyOffset = 0x1BF;
+			for (var offset = TitleKeyOffset; offset < TitleKeyOffset + 0x10; offset++)
+			{
+				ticket[offset] = titleKey[offset - TitleKeyOffset];
+			}
+
+			const int TitleIdOffset = 0x1DC;
+			for (int offset = TitleIdOffset; offset < TitleIdOffset + 0x8; offset++)
+			{
+				ticket[offset] = titleId[offset - TitleIdOffset];
+			}
+
+			return ticket;
+		}
+
 		public static string SanitizeFileName(string title)
 		{
 			var sanitizedName = title;
