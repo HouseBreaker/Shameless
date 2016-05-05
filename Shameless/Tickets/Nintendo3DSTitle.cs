@@ -14,7 +14,7 @@
 			// validation in the constructor and not in the properties. my uni would be so proud.
 			this.TitleId = titleId.ToUpper();
 			this.EncKey = encKey.ToUpper();
-			this.Name = string.IsNullOrWhiteSpace(name) ? "Unknown" : name.RemoveTrademarks();
+			this.Name = string.IsNullOrWhiteSpace(name) ? "Unknown" : name.RemoveTrademarks().Replace('\n', ' ');
 			this.Type = type;
 			this.Region = string.IsNullOrWhiteSpace(region) ? "Unknown" : region;
 			this.Serial = serial;
@@ -78,6 +78,11 @@
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return this.GetEnumerator();
+		}
+
+		public override string ToString()
+		{
+			return this.TitleId + ": " + this.Name;
 		}
 	}
 }
