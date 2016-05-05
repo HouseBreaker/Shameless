@@ -83,9 +83,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColumnComparers\CompareAscending.cs" />
-    <Compile Include="ColumnComparers\CompareDescending.cs" />
+    <Compile Include="DataGridViewStuff\SortableBindingList.cs" />
     <Compile Include="QRGeneration\QrUtils.cs" />
+    <Compile Include="DataGridViewStuff\DataGridViewExtensions.cs" />
     <Compile Include="TitleFiltering\TitleFilter.cs" />
     <Compile Include="FilterDialog.cs">
       <SubType>Form</SubType>
@@ -118,7 +118,6 @@
     <Compile Include="Utils\CDNUtils.cs" />
     <Compile Include="Utils\JsonPrettifier.cs" />
     <Compile Include="Utils\StringExtensions.cs" />
-    <Compile Include="Utils\TitleExtensions.cs" />
     <EmbeddedResource Include="FilterDialog.resx">
       <DependentUpon>FilterDialog.cs</DependentUpon>
     </EmbeddedResource>
@@ -158,7 +157,9 @@
     <Content Include="libs\Newtonsoft.Json.dll" />
     <Content Include="libs\zxing.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Properties\DataSources\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

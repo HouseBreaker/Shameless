@@ -35,13 +35,6 @@
 			this.currentTitleStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.currentActionLabel = new System.Windows.Forms.ToolStripStatusLabel();
 			this.titlesCountLabel = new System.Windows.Forms.ToolStripStatusLabel();
-			this.titlesListView = new System.Windows.Forms.ListView();
-			this.titleIDHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.encryptedTitleKeyHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.nameHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.regionHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.typeHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-			this.serialHeader = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.searchBox = new System.Windows.Forms.TextBox();
 			this.generateQrCodeButton = new System.Windows.Forms.Button();
 			this.delayTimer = new System.Windows.Forms.Timer(this.components);
@@ -49,7 +42,18 @@
 			this.generateAllTicketsButton = new System.Windows.Forms.Button();
 			this.progressUpdater = new System.ComponentModel.BackgroundWorker();
 			this.filterButton = new System.Windows.Forms.Button();
+			this.titlesDataGrid = new System.Windows.Forms.DataGridView();
+			this.checkUpdatesButton = new System.Windows.Forms.Button();
+			this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.dataGridViewTextBoxColumn5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.nintendo3DSTitleBindingSource = new System.Windows.Forms.BindingSource(this.components);
 			this.statusStrip.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.titlesDataGrid)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.nintendo3DSTitleBindingSource)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// statusStrip
@@ -90,58 +94,6 @@
 			this.titlesCountLabel.Spring = true;
 			this.titlesCountLabel.Text = "0 titles";
 			this.titlesCountLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// titlesListView
-			// 
-			this.titlesListView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.titlesListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.titleIDHeader,
-            this.encryptedTitleKeyHeader,
-            this.nameHeader,
-            this.regionHeader,
-            this.typeHeader,
-            this.serialHeader});
-			this.titlesListView.FullRowSelect = true;
-			this.titlesListView.GridLines = true;
-			this.titlesListView.HideSelection = false;
-			this.titlesListView.Location = new System.Drawing.Point(12, 41);
-			this.titlesListView.Name = "titlesListView";
-			this.titlesListView.Size = new System.Drawing.Size(800, 356);
-			this.titlesListView.TabIndex = 2;
-			this.titlesListView.UseCompatibleStateImageBehavior = false;
-			this.titlesListView.View = System.Windows.Forms.View.Details;
-			this.titlesListView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.titlesListView_ColumnClick);
-			// 
-			// titleIDHeader
-			// 
-			this.titleIDHeader.Text = "Title ID";
-			// 
-			// encryptedTitleKeyHeader
-			// 
-			this.encryptedTitleKeyHeader.Text = "Encrypted Title Key";
-			this.encryptedTitleKeyHeader.Width = 108;
-			// 
-			// nameHeader
-			// 
-			this.nameHeader.Text = "Name";
-			this.nameHeader.Width = 283;
-			// 
-			// regionHeader
-			// 
-			this.regionHeader.Text = "Region";
-			this.regionHeader.Width = 63;
-			// 
-			// typeHeader
-			// 
-			this.typeHeader.Text = "Type";
-			this.typeHeader.Width = 69;
-			// 
-			// serialHeader
-			// 
-			this.serialHeader.Text = "Serial";
-			this.serialHeader.Width = 44;
 			// 
 			// searchBox
 			// 
@@ -211,17 +163,116 @@
 			this.filterButton.UseVisualStyleBackColor = true;
 			this.filterButton.Click += new System.EventHandler(this.filterButton_Click);
 			// 
+			// titlesDataGrid
+			// 
+			this.titlesDataGrid.AllowUserToAddRows = false;
+			this.titlesDataGrid.AllowUserToDeleteRows = false;
+			this.titlesDataGrid.AllowUserToResizeRows = false;
+			this.titlesDataGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.titlesDataGrid.AutoGenerateColumns = false;
+			this.titlesDataGrid.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+			this.titlesDataGrid.BackgroundColor = System.Drawing.SystemColors.ControlLightLight;
+			this.titlesDataGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+			this.titlesDataGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.dataGridViewTextBoxColumn1,
+            this.dataGridViewTextBoxColumn2,
+            this.dataGridViewTextBoxColumn3,
+            this.dataGridViewTextBoxColumn4,
+            this.dataGridViewTextBoxColumn5,
+            this.dataGridViewTextBoxColumn6});
+			this.titlesDataGrid.DataSource = this.nintendo3DSTitleBindingSource;
+			this.titlesDataGrid.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
+			this.titlesDataGrid.Location = new System.Drawing.Point(12, 41);
+			this.titlesDataGrid.Name = "titlesDataGrid";
+			this.titlesDataGrid.ReadOnly = true;
+			this.titlesDataGrid.RowHeadersVisible = false;
+			this.titlesDataGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+			this.titlesDataGrid.ShowEditingIcon = false;
+			this.titlesDataGrid.Size = new System.Drawing.Size(800, 356);
+			this.titlesDataGrid.TabIndex = 2;
+			this.titlesDataGrid.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.titlesDataGrid_RowHeaderMouseClick);
+			// 
+			// checkUpdatesButton
+			// 
+			this.checkUpdatesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkUpdatesButton.Location = new System.Drawing.Point(702, 12);
+			this.checkUpdatesButton.Name = "checkUpdatesButton";
+			this.checkUpdatesButton.Size = new System.Drawing.Size(110, 23);
+			this.checkUpdatesButton.TabIndex = 10;
+			this.checkUpdatesButton.Text = "Update database";
+			this.checkUpdatesButton.UseVisualStyleBackColor = true;
+			this.checkUpdatesButton.Click += new System.EventHandler(this.checkUpdatesButton_Click);
+			// 
+			// dataGridViewTextBoxColumn1
+			// 
+			this.dataGridViewTextBoxColumn1.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn1.DataPropertyName = "TitleId";
+			this.dataGridViewTextBoxColumn1.HeaderText = "TitleId";
+			this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+			this.dataGridViewTextBoxColumn1.ReadOnly = true;
+			this.dataGridViewTextBoxColumn1.Width = 110;
+			// 
+			// dataGridViewTextBoxColumn2
+			// 
+			this.dataGridViewTextBoxColumn2.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn2.DataPropertyName = "EncKey";
+			this.dataGridViewTextBoxColumn2.HeaderText = "EncKey";
+			this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
+			this.dataGridViewTextBoxColumn2.ReadOnly = true;
+			this.dataGridViewTextBoxColumn2.Width = 220;
+			// 
+			// dataGridViewTextBoxColumn3
+			// 
+			this.dataGridViewTextBoxColumn3.DataPropertyName = "Name";
+			this.dataGridViewTextBoxColumn3.HeaderText = "Name";
+			this.dataGridViewTextBoxColumn3.Name = "dataGridViewTextBoxColumn3";
+			this.dataGridViewTextBoxColumn3.ReadOnly = true;
+			// 
+			// dataGridViewTextBoxColumn4
+			// 
+			this.dataGridViewTextBoxColumn4.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn4.DataPropertyName = "Type";
+			this.dataGridViewTextBoxColumn4.HeaderText = "Type";
+			this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
+			this.dataGridViewTextBoxColumn4.ReadOnly = true;
+			this.dataGridViewTextBoxColumn4.Width = 50;
+			// 
+			// dataGridViewTextBoxColumn5
+			// 
+			this.dataGridViewTextBoxColumn5.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn5.DataPropertyName = "Region";
+			this.dataGridViewTextBoxColumn5.HeaderText = "Region";
+			this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
+			this.dataGridViewTextBoxColumn5.ReadOnly = true;
+			this.dataGridViewTextBoxColumn5.Width = 50;
+			// 
+			// dataGridViewTextBoxColumn6
+			// 
+			this.dataGridViewTextBoxColumn6.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn6.DataPropertyName = "Serial";
+			this.dataGridViewTextBoxColumn6.HeaderText = "Serial";
+			this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
+			this.dataGridViewTextBoxColumn6.ReadOnly = true;
+			this.dataGridViewTextBoxColumn6.Width = 110;
+			// 
+			// nintendo3DSTitleBindingSource
+			// 
+			this.nintendo3DSTitleBindingSource.DataSource = typeof(Shameless.Tickets.Nintendo3DSTitle);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(824, 451);
+			this.Controls.Add(this.checkUpdatesButton);
+			this.Controls.Add(this.titlesDataGrid);
 			this.Controls.Add(this.filterButton);
 			this.Controls.Add(this.generateAllTicketsButton);
 			this.Controls.Add(this.showSizeCheckbox);
 			this.Controls.Add(this.generateQrCodeButton);
 			this.Controls.Add(this.searchBox);
-			this.Controls.Add(this.titlesListView);
 			this.Controls.Add(this.statusStrip);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MinimumSize = new System.Drawing.Size(840, 490);
@@ -230,6 +281,8 @@
 			this.Shown += new System.EventHandler(this.MainForm_Shown);
 			this.statusStrip.ResumeLayout(false);
 			this.statusStrip.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.titlesDataGrid)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.nintendo3DSTitleBindingSource)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -238,14 +291,6 @@
 		#endregion
 		private System.Windows.Forms.StatusStrip statusStrip;
 		private System.Windows.Forms.ToolStripStatusLabel currentActionLabel;
-
-		public System.Windows.Forms.ListView titlesListView;
-		private System.Windows.Forms.ColumnHeader titleIDHeader;
-		private System.Windows.Forms.ColumnHeader encryptedTitleKeyHeader;
-		private System.Windows.Forms.ColumnHeader nameHeader;
-		private System.Windows.Forms.ColumnHeader regionHeader;
-		private System.Windows.Forms.ColumnHeader typeHeader;
-		private System.Windows.Forms.ColumnHeader serialHeader;
 		private System.Windows.Forms.TextBox searchBox;
 		private System.Windows.Forms.Button generateQrCodeButton;
 		private System.Windows.Forms.Timer delayTimer;
@@ -256,6 +301,21 @@
 		private System.Windows.Forms.Button generateAllTicketsButton;
 		private System.ComponentModel.BackgroundWorker progressUpdater;
 		private System.Windows.Forms.Button filterButton;
+		private System.Windows.Forms.DataGridView titlesDataGrid;
+		private System.Windows.Forms.DataGridViewTextBoxColumn titleIdDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn encKeyDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn typeDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn regionDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn serialDataGridViewTextBoxColumn;
+		private System.Windows.Forms.BindingSource nintendo3DSTitleBindingSource;
+		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
+		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
+		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
+		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn5;
+		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn6;
+		private System.Windows.Forms.Button checkUpdatesButton;
 	}
 }
 

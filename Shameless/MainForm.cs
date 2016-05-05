@@ -2,15 +2,17 @@
 namespace Shameless
 {
 	using System;
+	using System.Collections.Generic;
 	using System.ComponentModel;
 	using System.IO;
 	using System.Linq;
 	using System.Net;
 	using System.Reflection;
+	using System.Text;
 	using System.Threading.Tasks;
 	using System.Windows.Forms;
 
-	using Shameless.ColumnComparers;
+	using Shameless.DataGridViewStuff;
 	using Shameless.QRGeneration;
 	using Shameless.Resources;
 	using Shameless.Tickets;
@@ -20,15 +22,15 @@ namespace Shameless
 
 	public partial class MainForm : Form
 	{
-		private bool sortColumnsAscending;
+		private ListSortDirection sortOrder = ListSortDirection.Ascending;
 
-		private int lastSortedColumn;
+		private int lastSortedColumn = 2;
 
 		private bool searchBoxInitialized;
 
 		private bool isSearching;
 
-		private Nintendo3DSTitle[] titles;
+		private SortableBindingList<Nintendo3DSTitle> titles;
 
 		private Nintendo3DSTitle[] allTitles;
 
@@ -44,9 +46,10 @@ namespace Shameless
 		private async void MainForm_Shown(object sender, EventArgs e)
 		{
 			this.SetVersion();
-			
-			ServicePointManager.ServerCertificateValidationCallback = (sender2, certificate, chain, sslPolicyErrors) => true;
 
+			// ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+			// ServicePointManager.ServerCertificateValidationCallback = (sender2, certificate, chain, sslPolicyErrors) => true;
 			this.currentTitleStatusLabel.Text = string.Empty;
 
 			if (!File.Exists(Files.DbPath))
@@ -78,15 +81,15 @@ namespace Shameless
 				this.titleFilter = TitleFilterStorage.ParseFilterSettings(Files.FilterPath);
 			}
 
-			await this.FilterTitlesAndUpdate();
+			this.titles = new SortableBindingList<Nintendo3DSTitle>(TitleFilter.FilterTitles(this.allTitles, this.titleFilter));
 
-			// this.UpdateAction("Sorting...");
-			// this.statusProgressbar.Style = ProgressBarStyle.Marquee;
-			// this.titlesListView.ListViewItemSorter = new CompareAscending(2);
-			// this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+			this.titlesDataGrid.DoubleBuffered(true);
+			this.titlesDataGrid.DataSource = this.titles;
+			this.SortDataGrid();
+
 			this.UpdateAction(string.Empty);
 			this.currentTitleStatusLabel.Text = string.Empty;
-			this.titlesCountLabel.Text = this.titles.Length + " titles";
+			this.titlesCountLabel.Text = this.titles.Count + " titles";
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 
 			this.generateAllTicketsButton.Enabled = true;
@@ -108,86 +111,13 @@ namespace Shameless
 			this.currentActionLabel.Text = message;
 		}
 
-		private void UpdateTitlesList(Nintendo3DSTitle[] titles)
-		{
-#if DEBUG
-			var st = new Stopwatch();
-			st.Start();
-#endif
-			this.titlesListView.BeginUpdate();
-
-			this.titlesListView.Sorting = SortOrder.None;
-
-			this.titlesListView.Items.Clear();
-
-			foreach (var title in titles)
-			{
-				this.titlesListView.Items.Add(title.ToListViewItem());
-			}
-
-			this.titlesListView.AutoResizeColumns(ColumnHeaderAutoResizeStyle.ColumnContent);
-
-			this.titlesListView.ListViewItemSorter = new CompareAscending(2);
-			this.titlesListView.AutoSize = true;
-			this.ResizeNameColumn();
-
-			this.titlesListView.EndUpdate();
-#if DEBUG
-			st.Stop();
-
-			MessageBox.Show($"Time to update titles list: {st.ElapsedMilliseconds}ms");
-#endif
-		}
-
-		private void ResizeNameColumn()
-		{
-			if (this.titlesListView.Items.Count > 0)
-			{
-				var size = 10
-							* (int)Math.Ceiling(this.titlesListView.Items.Cast<ListViewItem>().Average(item => item.SubItems[2].Text.Length));
-				this.titlesListView.Columns[2].Width = size;
-			}
-			else
-			{
-				foreach (ColumnHeader column in this.titlesListView.Columns)
-				{
-					column.Width = 50;
-				}
-
-				// Encrypted title key column
-				this.titlesListView.Columns[1].Width = 110;
-			}
-		}
-
-		private void titlesListView_ColumnClick(object sender, ColumnClickEventArgs e)
-		{
-			if (e.Column != this.lastSortedColumn)
-			{
-				this.titlesListView.ListViewItemSorter = new CompareAscending(e.Column);
-				this.lastSortedColumn = e.Column;
-			}
-			else
-			{
-				if (this.sortColumnsAscending)
-				{
-					this.titlesListView.ListViewItemSorter = new CompareAscending(e.Column);
-					this.sortColumnsAscending = false;
-				}
-				else
-				{
-					this.titlesListView.ListViewItemSorter = new CompareDescending(e.Column);
-					this.sortColumnsAscending = true;
-				}
-			}
-		}
-
 		private void searchBox_TextChanged(object sender, EventArgs e)
 		{
 			this.delayTimer.Stop();
 			this.delayTimer.Start();
 		}
 
-		private async void delayTimer_Tick(object sender, EventArgs e)
+		private void delayTimer_Tick(object sender, EventArgs e)
 		{
 			this.delayTimer.Stop();
 
@@ -195,6 +125,7 @@ namespace Shameless
 			{
 				return;
 			}
+
 			this.isSearching = true;
 
 			if (!string.IsNullOrWhiteSpace(this.searchBox.Text))
@@ -203,15 +134,15 @@ namespace Shameless
 				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 			}
 
-			await Task.Run(() => this.SearchAsYouType());
+			this.SearchAsYouType();
 
 			this.isSearching = false;
 
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 
-			if (this.titlesListView.Items.Count != this.titles.Length)
+			if (this.titlesDataGrid.RowCount != this.titles.Count)
 			{
-				this.UpdateAction($"Found {this.titlesListView.Items.Count} items.");
+				this.UpdateAction($"Found {this.titlesDataGrid.RowCount} items.");
 			}
 			else
 			{
@@ -228,33 +159,35 @@ namespace Shameless
 
 			if (string.IsNullOrWhiteSpace(this.searchBox.Text) || this.searchBox.SelectedText == this.searchBox.Text)
 			{
-				if (this.titlesListView.Items.Count != this.titles.Length)
-				{
-					this.UpdateTitlesList(this.titles);
-					this.lastSearchTerm = this.searchBox.Text;
-				}
-
 				return;
 			}
 
 			Func<string, string, bool> containsSubstring = (x, y) => x.Contains(y, StringComparison.OrdinalIgnoreCase);
 
 			var foundTitles =
-				this.titles.Where(
-					a =>
-					containsSubstring(a.Name.RemoveDiacritics(), this.searchBox.Text)
-					|| containsSubstring(a.TitleId, this.searchBox.Text) || containsSubstring(a.Serial, this.searchBox.Text)).ToArray();
+				TitleFilter.FilterTitles(this.allTitles, this.titleFilter)
+					.Where(
+						a =>
+						containsSubstring(a.Name.RemoveDiacritics(), this.searchBox.Text)
+						|| containsSubstring(a.TitleId, this.searchBox.Text) || containsSubstring(a.Serial, this.searchBox.Text))
+					.ToArray();
 
 			if (foundTitles.Any())
 			{
-				this.UpdateTitlesList(foundTitles);
+				this.titlesDataGrid.DataSource = new SortableBindingList<Nintendo3DSTitle>(foundTitles);
+				this.SortDataGrid();
 			}
 			else
 			{
-				MessageBox.Show("No titles found.");
+				this.UpdateAction("No titles found.");
 			}
 
 			this.lastSearchTerm = this.searchBox.Text;
+		}
+
+		private void SortDataGrid()
+		{
+			this.titlesDataGrid.Sort(this.titlesDataGrid.Columns[this.lastSortedColumn], this.sortOrder);
 		}
 
 		private void searchBox_Enter(object sender, EventArgs e)
@@ -270,55 +203,80 @@ namespace Shameless
 
 		private async void generateQrCodeButton_Click(object sender, EventArgs e)
 		{
-			foreach (ListViewItem item in this.titlesListView.SelectedItems)
+			var selectedCells = this.titlesDataGrid.SelectedCells;
+
+			var selectedRows =
+				(from DataGridViewCell item in selectedCells select this.titlesDataGrid.Rows[item.RowIndex]).Distinct().ToArray();
+
+			const byte maxTitles = 15;
+			if (selectedRows.Length > maxTitles)
 			{
-				var subItems = item.SubItems;
+				MessageBox.Show(
+					$"If you make a QR code which has more than {maxTitles} titles, your 3DS will not read it. The camera on the thing isn't that good. Please select less titles.", 
+					$"{maxTitles} title limit", 
+					MessageBoxButtons.OK, 
+					MessageBoxIcon.Error);
+				return;
+			}
 
-				var titleId = subItems[0].Text;
-				var titleKey = subItems[1].Text;
-				var name = subItems[2].Text;
-				var serial = subItems[5].Text;
+			this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 
-				this.currentTitleStatusLabel.Text = name;
+			// var mboxResult =
+			// 	MessageBox.Show(
+			// 		$"Generate one QR code for all {selectedRows.Length} titles? If you select no, individual QR codes will be generated.",
+			// 		"Multiple titles selected",
+			// 		MessageBoxButtons.YesNo);
 
-				var title = new Nintendo3DSTitle(titleId, titleKey, name, string.Empty, string.Empty, serial);
-				var ticketFileName = $"{title.Name} ({title.Serial}).tik";
-				TicketGenerator.GenerateTicket(title, ticketFileName, Environment.CurrentDirectory);
+			// if (mboxResult == DialogResult.Yes)
+			// {
+			var qrContents = new List<string[]>();
 
-				this.UpdateAction("Generating ticket...");
-				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
-				var result = await Task.Run(() => QrUtils.MakeTicketIntoQrCode(TicketGenerator.SanitizeFileName(ticketFileName)));
-				this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+			for (var index = 0; index < selectedRows.Length; index++)
+			{
+				var row = selectedRows[index];
+				var cells = row.Cells;
 
-				File.Delete(TicketGenerator.SanitizeFileName(ticketFileName));
+				var titleId = cells[0].Value.ToString();
+				var name = cells[2].Value.ToString();
+
+				var url = "http://3ds.nfshost.com/ticket/" + titleId.ToLower();
+				var shortUrl = await Task.Run(() => QrUtils.Shorten(url));
+
+				this.UpdateAction($"Shortening url ({index + 1}/{selectedRows.Length})");
 
 				long size = 0;
 
 				if (this.showSizeCheckbox.Checked)
 				{
-					this.UpdateAction("Getting title size...");
-					this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+					this.UpdateAction($"Getting title size ({index + 1}/{selectedRows.Length})");
 					size = await Task.Run(() => CDNUtils.GetTitleSize(titleId));
-					this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 				}
 
-				var resultForm = new QrCodeResultForm(titleId, name, size, result.Url, result.QrCode);
-				resultForm.Show(this);
+				var sizeString = size > 0 ? size.ToString() : string.Empty;
 
-				this.currentActionLabel.Text = string.Empty;
+				qrContents.Add(new[] { titleId, name, sizeString, shortUrl });
 			}
 
-			this.currentTitleStatusLabel.Text = string.Empty;
-		}
+			var urls = qrContents.Select(a => a[3]).ToArray();
 
-		
+			var result = QrUtils.MakeUrlIntoQrCode(string.Join("\n", urls));
+
+			var resultForm = new QrCodeResultForm(qrContents.ToArray(), result.QrCode);
+
+			resultForm.Show(this);
+
+			// }
+			this.UpdateAction(string.Empty);
+			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+		}
 
 		private async void generateAllTicketsButton_Click(object sender, EventArgs e)
 		{
-			var result = MessageBox.Show(
-				$"Warning: Only tickets with the current filter applied will be generated.\r\n\r\n{this.titles.Length} tickets are about to be generated. Continue?", 
-				"Ticket generation", 
-				MessageBoxButtons.YesNo);
+			var result =
+				MessageBox.Show(
+					$"Warning: Only tickets with the current filter applied will be generated.\r\n\r\n{this.titles.Count} tickets are about to be generated. Continue?", 
+					"Ticket generation", 
+					MessageBoxButtons.YesNo);
 
 			if (result == DialogResult.Yes)
 			{
@@ -332,7 +290,7 @@ namespace Shameless
 
 				if (dialogResult == DialogResult.OK)
 				{
-					await Task.Run(() => this.GenerateTickets(this.titles, dialog.SelectedPath));
+					await Task.Run(() => this.GenerateTickets(this.titles.ToArray(), dialog.SelectedPath));
 					MessageBox.Show(
 						$"Successfully generated tickets at\r\n{dialog.SelectedPath}\\tickets", 
 						"Success", 
@@ -382,7 +340,7 @@ namespace Shameless
 			this.UpdateAction($"Generating tickets: {e.ProgressPercentage}%");
 		}
 
-		private async void filterButton_Click(object sender, EventArgs e)
+		private void filterButton_Click(object sender, EventArgs e)
 		{
 			var dialog = new FilterDialog(this.titleFilter.Clone());
 			var result = dialog.ShowDialog();
@@ -394,24 +352,100 @@ namespace Shameless
 					this.titleFilter = dialog.TitleFilter.Clone();
 					TitleFilterStorage.WriteFilterSettings(this.titleFilter, Files.FilterPath);
 
-					await this.FilterTitlesAndUpdate();
+					this.FilterTitlesAndUpdate();
 				}
 			}
 		}
 
-		private async Task FilterTitlesAndUpdate()
+		private void FilterTitlesAndUpdate()
 		{
 			this.UpdateAction("Filtering...");
 			this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 
-			await Task.Run(() => this.titles = TitleFilter.FilterTitles(this.allTitles, this.titleFilter));
-
-			this.UpdateAction("Updating title list...");
-			await Task.Run(() => this.UpdateTitlesList(this.titles));
+			this.titlesDataGrid.DataSource =
+				this.titles = new SortableBindingList<Nintendo3DSTitle>(TitleFilter.FilterTitles(this.allTitles, this.titleFilter));
 
 			this.UpdateAction(string.Empty);
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
-			this.titlesCountLabel.Text = $"{this.titlesListView.Items.Count} titles";
+			this.titlesCountLabel.Text = $"{this.titles.Count} titles";
+		}
+
+		private void titlesDataGrid_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (this.lastSortedColumn == e.ColumnIndex)
+			{
+				this.sortOrder = this.sortOrder ^= ListSortDirection.Descending;
+			}
+			else
+			{
+				this.sortOrder = ListSortDirection.Ascending;
+			}
+
+			this.lastSortedColumn = e.ColumnIndex;
+			this.SortDataGrid();
+		}
+
+		private async void checkUpdatesButton_Click(object sender, EventArgs e)
+		{
+			var result = MessageBox.Show("Check for updates?", "Update", MessageBoxButtons.YesNo);
+
+			if (result == DialogResult.No)
+			{
+				return;
+			}
+
+			this.statusProgressbar.Style = ProgressBarStyle.Marquee;
+
+			const string tempPath = Files.DbPath + "_temp";
+
+			this.UpdateAction("Downloading new database.");
+			using (var client = new WebClient())
+			{
+				await Task.Run(() => client.DownloadFile("http://3ds.nfshost.com/json_enc", tempPath));
+			}
+
+			this.UpdateAction("Done!");
+
+			this.UpdateAction("Parsing...");
+
+			var downloadedTitles = DatabaseParser.ParseFromDatabase(tempPath);
+
+			var newTitles = downloadedTitles.Except(this.allTitles).ToList();
+			var newTitleCount = newTitles.Count;
+
+			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
+
+			if (newTitleCount == 0)
+			{
+				File.Delete(tempPath);
+				this.UpdateAction(string.Empty);
+				MessageBox.Show("Database is up to date.", "Good news!");
+				return;
+			}
+
+			if (newTitles.Except(this.allTitles).Count() > 10)
+			{
+				newTitles = newTitles.Take(10).ToList();
+			}
+
+			var more = newTitleCount != newTitles.Count ? $" \r\n and {newTitleCount - 10} more" : string.Empty;
+
+			var parseResult = MessageBox.Show(
+				$"New titles:\r\n {string.Join("\r\n", newTitles)}{more}. Update?", 
+				"New titles found", 
+				MessageBoxButtons.YesNo);
+
+			if (parseResult == DialogResult.Yes)
+			{
+				var titles = JsonPrettifier.FormatJson(File.ReadAllText(tempPath));
+				File.WriteAllText(Files.DbPath, titles);
+				File.Delete(tempPath);
+
+				this.allTitles = downloadedTitles;
+				this.FilterTitlesAndUpdate();
+
+				this.UpdateAction("Database updated successfully!");
+			}
 		}
 	}
 }
