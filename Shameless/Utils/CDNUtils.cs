@@ -27,8 +27,8 @@ namespace Shameless.Utils
 
 			for (int i = 0; i < contentCount; i++)
 			{
-				var cOffs = 0xB04 + 0x30 * i;
-				var contentId = BitConversion.BytesToHex(tmd.Skip(cOffs).Take(4));
+				var contentOffset = 0xB04 + 0x30 * i;
+				var contentId = BitConversion.BytesToHex(tmd.Skip(contentOffset).Take(4));
 
 				try
 				{
