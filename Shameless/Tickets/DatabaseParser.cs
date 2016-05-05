@@ -1,8 +1,8 @@
 ﻿namespace Shameless.Tickets
 {
 	using System;
+	using System.Collections.Generic;
 	using System.IO;
-	using System.Linq;
 	using System.Net;
 
 	using Newtonsoft.Json.Linq;
@@ -22,16 +22,31 @@
 			var database = File.ReadAllText(databasePath);
 			Func<JToken, string> value = t => t.ToString();
 			var titles = JArray.Parse(database);
-			var entries = from title in titles
-						  let titleId = value(title["titleID"])
-						  let type = Nintendo3DSTitle.GetTitleType(value(titleId))
-						  // where !type.Contains("System")
-						  let encKey = value(title["encTitleKey"])
-						  let name = value(title["name"]).Trim()
-						  where !string.IsNullOrWhiteSpace(encKey)// && !string.IsNullOrWhiteSpace(name)
-						  let region = value(title["region"])
-						  let serial = value(title["serial"])
-						  select new Nintendo3DSTitle(titleId, encKey, name, type, region, serial);
+
+			var entries = new List<Nintendo3DSTitle>();
+			foreach (var title in titles)
+			{
+				var titleId = value(title["titleID"]);
+				var type = Nintendo3DSTitle.GetTitleType(value(titleId));
+				var encKey = value(title["encTitleKey"]);
+				if (string.IsNullOrWhiteSpace(encKey))
+				{
+					continue;
+				}
+
+				var name = value(title["name"]).Trim();
+
+				if (string.IsNullOrWhiteSpace(name))
+				{
+					name = "Unknown";
+				}
+
+				var region = value(title["region"]);
+				var serial = value(title["serial"]);
+
+				var generated = new Nintendo3DSTitle(titleId, encKey, name, type, region, serial);
+				entries.Add(generated);
+			}
 
 			return entries.ToArray();
 		}
