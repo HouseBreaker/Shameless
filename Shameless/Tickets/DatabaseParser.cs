@@ -9,13 +9,16 @@
 
 	public static class DatabaseParser
 	{
-		public static void DownloadDatabase(string outputPath, string sizesPath)
+		public static void DownloadDatabase(string outputPath)
 		{
 			using (var client = new WebClient())
 			{
 				client.DownloadFile("http://3ds.nfshost.com/json_enc", outputPath);
 			}
+		}
 
+		public static void DownloadSizes(string sizesPath)
+		{
 			using (var client = new WebClient())
 			{
 				client.DownloadFile("http://housebreaker.net/sizes.json", sizesPath);

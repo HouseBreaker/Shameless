@@ -12,6 +12,9 @@ namespace Shameless
 	using System.Threading.Tasks;
 	using System.Windows.Forms;
 
+	using Newtonsoft.Json;
+	using Newtonsoft.Json.Linq;
+
 	using Shameless.DataGridViewStuff;
 	using Shameless.QRGeneration;
 	using Shameless.Resources;
@@ -46,7 +49,6 @@ namespace Shameless
 		private async void MainForm_Shown(object sender, EventArgs e)
 		{
 			this.SetVersion();
-
 			this.currentTitleStatusLabel.Text = string.Empty;
 
 			if (!File.Exists(Files.DbPath))
@@ -64,10 +66,16 @@ namespace Shameless
 
 				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 				this.UpdateAction("Downloading database...");
-				await Task.Run(() => DatabaseParser.DownloadDatabase(Files.DbPath, Files.SizesPath));
+				await Task.Run(() => DatabaseParser.DownloadDatabase(Files.DbPath));
 
 				this.UpdateAction($"Prettifying JSON in \"{Files.DbPath}\"...");
 				File.WriteAllText(Files.DbPath, JsonPrettifier.FormatJson(File.ReadAllText(Files.DbPath)));
+			}
+
+			if (!File.Exists(Files.SizesPath))
+			{
+				this.UpdateAction("Downloading sizes data...");
+				await Task.Run(() => DatabaseParser.DownloadSizes(Files.SizesPath));
 			}
 
 			this.UpdateAction($"Reading data from \"{Files.DbPath}\" and \"{Files.SizesPath}\"...");
@@ -156,6 +164,7 @@ namespace Shameless
 
 			if (string.IsNullOrWhiteSpace(this.searchBox.Text) || this.searchBox.SelectedText == this.searchBox.Text)
 			{
+				this.FilterTitlesAndUpdate();
 				return;
 			}
 

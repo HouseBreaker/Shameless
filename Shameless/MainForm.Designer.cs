@@ -42,7 +42,6 @@
 			this.progressUpdater = new System.ComponentModel.BackgroundWorker();
 			this.filterButton = new System.Windows.Forms.Button();
 			this.titlesDataGrid = new System.Windows.Forms.DataGridView();
-			this.checkUpdatesButton = new System.Windows.Forms.Button();
 			this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.dataGridViewTextBoxColumn2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.dataGridViewTextBoxColumn3 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -52,6 +51,7 @@
 			this.humanReadableSizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.nintendo3DSTitleBindingSource = new System.Windows.Forms.BindingSource(this.components);
+			this.checkUpdatesButton = new System.Windows.Forms.Button();
 			this.statusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.titlesDataGrid)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.nintendo3DSTitleBindingSource)).BeginInit();
@@ -122,6 +122,7 @@
 			// 
 			// delayTimer
 			// 
+			this.delayTimer.Interval = 300;
 			this.delayTimer.Tick += new System.EventHandler(this.delayTimer_Tick);
 			// 
 			// generateAllTicketsButton
@@ -186,17 +187,6 @@
 			this.titlesDataGrid.TabIndex = 2;
 			this.titlesDataGrid.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.titlesDataGrid_RowHeaderMouseClick);
 			this.titlesDataGrid.Scroll += new System.Windows.Forms.ScrollEventHandler(this.titlesDataGrid_Scroll);
-			// 
-			// checkUpdatesButton
-			// 
-			this.checkUpdatesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.checkUpdatesButton.Location = new System.Drawing.Point(702, 12);
-			this.checkUpdatesButton.Name = "checkUpdatesButton";
-			this.checkUpdatesButton.Size = new System.Drawing.Size(110, 23);
-			this.checkUpdatesButton.TabIndex = 10;
-			this.checkUpdatesButton.Text = "Update database";
-			this.checkUpdatesButton.UseVisualStyleBackColor = true;
-			this.checkUpdatesButton.Click += new System.EventHandler(this.checkUpdatesButton_Click);
 			// 
 			// dataGridViewTextBoxColumn1
 			// 
@@ -275,6 +265,17 @@
 			// nintendo3DSTitleBindingSource
 			// 
 			this.nintendo3DSTitleBindingSource.DataSource = typeof(Shameless.Tickets.Nintendo3DSTitle);
+			// 
+			// checkUpdatesButton
+			// 
+			this.checkUpdatesButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkUpdatesButton.Location = new System.Drawing.Point(702, 12);
+			this.checkUpdatesButton.Name = "checkUpdatesButton";
+			this.checkUpdatesButton.Size = new System.Drawing.Size(110, 23);
+			this.checkUpdatesButton.TabIndex = 10;
+			this.checkUpdatesButton.Text = "Update database";
+			this.checkUpdatesButton.UseVisualStyleBackColor = true;
+			this.checkUpdatesButton.Click += new System.EventHandler(this.checkUpdatesButton_Click);
 			// 
 			// MainForm
 			// 
