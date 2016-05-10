@@ -38,7 +38,6 @@
 			this.searchBox = new System.Windows.Forms.TextBox();
 			this.generateQrCodeButton = new System.Windows.Forms.Button();
 			this.delayTimer = new System.Windows.Forms.Timer(this.components);
-			this.showSizeCheckbox = new System.Windows.Forms.CheckBox();
 			this.generateAllTicketsButton = new System.Windows.Forms.Button();
 			this.progressUpdater = new System.ComponentModel.BackgroundWorker();
 			this.filterButton = new System.Windows.Forms.Button();
@@ -50,6 +49,8 @@
 			this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.dataGridViewTextBoxColumn5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.humanReadableSizeDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.nintendo3DSTitleBindingSource = new System.Windows.Forms.BindingSource(this.components);
 			this.statusStrip.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.titlesDataGrid)).BeginInit();
@@ -123,17 +124,6 @@
 			// 
 			this.delayTimer.Tick += new System.EventHandler(this.delayTimer_Tick);
 			// 
-			// showSizeCheckbox
-			// 
-			this.showSizeCheckbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.showSizeCheckbox.AutoSize = true;
-			this.showSizeCheckbox.Location = new System.Drawing.Point(582, 407);
-			this.showSizeCheckbox.Name = "showSizeCheckbox";
-			this.showSizeCheckbox.Size = new System.Drawing.Size(80, 17);
-			this.showSizeCheckbox.TabIndex = 7;
-			this.showSizeCheckbox.Text = "Show size?";
-			this.showSizeCheckbox.UseVisualStyleBackColor = true;
-			// 
 			// generateAllTicketsButton
 			// 
 			this.generateAllTicketsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -181,7 +171,9 @@
             this.dataGridViewTextBoxColumn3,
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn5,
-            this.dataGridViewTextBoxColumn6});
+            this.dataGridViewTextBoxColumn6,
+            this.humanReadableSizeDataGridViewTextBoxColumn,
+            this.dataGridViewTextBoxColumn7});
 			this.titlesDataGrid.DataSource = this.nintendo3DSTitleBindingSource;
 			this.titlesDataGrid.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
 			this.titlesDataGrid.Location = new System.Drawing.Point(12, 41);
@@ -193,6 +185,7 @@
 			this.titlesDataGrid.Size = new System.Drawing.Size(800, 356);
 			this.titlesDataGrid.TabIndex = 2;
 			this.titlesDataGrid.ColumnHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.titlesDataGrid_RowHeaderMouseClick);
+			this.titlesDataGrid.Scroll += new System.Windows.Forms.ScrollEventHandler(this.titlesDataGrid_Scroll);
 			// 
 			// checkUpdatesButton
 			// 
@@ -207,21 +200,23 @@
 			// 
 			// dataGridViewTextBoxColumn1
 			// 
-			this.dataGridViewTextBoxColumn1.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn1.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
 			this.dataGridViewTextBoxColumn1.DataPropertyName = "TitleId";
-			this.dataGridViewTextBoxColumn1.HeaderText = "TitleId";
+			this.dataGridViewTextBoxColumn1.HeaderText = "Title ID";
 			this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
 			this.dataGridViewTextBoxColumn1.ReadOnly = true;
-			this.dataGridViewTextBoxColumn1.Width = 110;
+			this.dataGridViewTextBoxColumn1.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridViewTextBoxColumn1.Width = 66;
 			// 
 			// dataGridViewTextBoxColumn2
 			// 
-			this.dataGridViewTextBoxColumn2.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn2.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
 			this.dataGridViewTextBoxColumn2.DataPropertyName = "EncKey";
-			this.dataGridViewTextBoxColumn2.HeaderText = "EncKey";
+			this.dataGridViewTextBoxColumn2.HeaderText = "Encrypted Key";
 			this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
 			this.dataGridViewTextBoxColumn2.ReadOnly = true;
-			this.dataGridViewTextBoxColumn2.Width = 220;
+			this.dataGridViewTextBoxColumn2.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridViewTextBoxColumn2.Width = 101;
 			// 
 			// dataGridViewTextBoxColumn3
 			// 
@@ -232,30 +227,50 @@
 			// 
 			// dataGridViewTextBoxColumn4
 			// 
-			this.dataGridViewTextBoxColumn4.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn4.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
 			this.dataGridViewTextBoxColumn4.DataPropertyName = "Type";
 			this.dataGridViewTextBoxColumn4.HeaderText = "Type";
 			this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
 			this.dataGridViewTextBoxColumn4.ReadOnly = true;
-			this.dataGridViewTextBoxColumn4.Width = 50;
+			this.dataGridViewTextBoxColumn4.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridViewTextBoxColumn4.Width = 56;
 			// 
 			// dataGridViewTextBoxColumn5
 			// 
-			this.dataGridViewTextBoxColumn5.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn5.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
 			this.dataGridViewTextBoxColumn5.DataPropertyName = "Region";
 			this.dataGridViewTextBoxColumn5.HeaderText = "Region";
 			this.dataGridViewTextBoxColumn5.Name = "dataGridViewTextBoxColumn5";
 			this.dataGridViewTextBoxColumn5.ReadOnly = true;
-			this.dataGridViewTextBoxColumn5.Width = 50;
+			this.dataGridViewTextBoxColumn5.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridViewTextBoxColumn5.Width = 66;
 			// 
 			// dataGridViewTextBoxColumn6
 			// 
-			this.dataGridViewTextBoxColumn6.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+			this.dataGridViewTextBoxColumn6.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
 			this.dataGridViewTextBoxColumn6.DataPropertyName = "Serial";
 			this.dataGridViewTextBoxColumn6.HeaderText = "Serial";
 			this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
 			this.dataGridViewTextBoxColumn6.ReadOnly = true;
-			this.dataGridViewTextBoxColumn6.Width = 110;
+			this.dataGridViewTextBoxColumn6.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridViewTextBoxColumn6.Width = 58;
+			// 
+			// humanReadableSizeDataGridViewTextBoxColumn
+			// 
+			this.humanReadableSizeDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
+			this.humanReadableSizeDataGridViewTextBoxColumn.DataPropertyName = "HumanReadableSize";
+			this.humanReadableSizeDataGridViewTextBoxColumn.HeaderText = "Size";
+			this.humanReadableSizeDataGridViewTextBoxColumn.Name = "humanReadableSizeDataGridViewTextBoxColumn";
+			this.humanReadableSizeDataGridViewTextBoxColumn.ReadOnly = true;
+			this.humanReadableSizeDataGridViewTextBoxColumn.Width = 52;
+			// 
+			// dataGridViewTextBoxColumn7
+			// 
+			this.dataGridViewTextBoxColumn7.DataPropertyName = "Size";
+			this.dataGridViewTextBoxColumn7.HeaderText = "SizeInBytes";
+			this.dataGridViewTextBoxColumn7.Name = "dataGridViewTextBoxColumn7";
+			this.dataGridViewTextBoxColumn7.ReadOnly = true;
+			this.dataGridViewTextBoxColumn7.Visible = false;
 			// 
 			// nintendo3DSTitleBindingSource
 			// 
@@ -270,7 +285,6 @@
 			this.Controls.Add(this.titlesDataGrid);
 			this.Controls.Add(this.filterButton);
 			this.Controls.Add(this.generateAllTicketsButton);
-			this.Controls.Add(this.showSizeCheckbox);
 			this.Controls.Add(this.generateQrCodeButton);
 			this.Controls.Add(this.searchBox);
 			this.Controls.Add(this.statusStrip);
@@ -297,7 +311,6 @@
 		private System.Windows.Forms.ToolStripProgressBar statusProgressbar;
 		private System.Windows.Forms.ToolStripStatusLabel currentTitleStatusLabel;
 		private System.Windows.Forms.ToolStripStatusLabel titlesCountLabel;
-		private System.Windows.Forms.CheckBox showSizeCheckbox;
 		private System.Windows.Forms.Button generateAllTicketsButton;
 		private System.ComponentModel.BackgroundWorker progressUpdater;
 		private System.Windows.Forms.Button filterButton;
@@ -308,6 +321,8 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn typeDataGridViewTextBoxColumn;
 		private System.Windows.Forms.DataGridViewTextBoxColumn regionDataGridViewTextBoxColumn;
 		private System.Windows.Forms.DataGridViewTextBoxColumn serialDataGridViewTextBoxColumn;
+		private System.Windows.Forms.Button checkUpdatesButton;
+		private System.Windows.Forms.DataGridViewTextBoxColumn sizeDataGridViewTextBoxColumn;
 		private System.Windows.Forms.BindingSource nintendo3DSTitleBindingSource;
 		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
 		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
@@ -315,7 +330,8 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
 		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn5;
 		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn6;
-		private System.Windows.Forms.Button checkUpdatesButton;
+		private System.Windows.Forms.DataGridViewTextBoxColumn humanReadableSizeDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn7;
 	}
 }
 

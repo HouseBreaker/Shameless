@@ -1,15 +1,14 @@
 ﻿namespace Shameless.Tickets
 {
 	using System;
-	using System.Collections;
 	using System.Collections.Generic;
 
 	using Shameless.Utils;
 
 	// ReSharper disable once InconsistentNaming
-	public class Nintendo3DSTitle : IEnumerable<string>
+	public class Nintendo3DSTitle
 	{
-		public Nintendo3DSTitle(string titleId, string encKey, string name, string type, string region, string serial)
+		public Nintendo3DSTitle(string titleId, string encKey, string name, string type, string region, string serial, long size)
 		{
 			// validation in the constructor and not in the properties. my uni would be so proud.
 			this.TitleId = titleId.ToUpper();
@@ -18,6 +17,8 @@
 			this.Type = type;
 			this.Region = string.IsNullOrWhiteSpace(region) ? "Unknown" : region;
 			this.Serial = serial;
+			this.Size = size;
+			this.HumanReadableSize = DatabaseParser.HumanReadableFileSize(size);
 		}
 
 		public string TitleId { get; }
@@ -31,6 +32,10 @@
 		public string Region { get; }
 
 		public string Serial { get; }
+
+		public long Size { get; set; }
+
+		public string HumanReadableSize { get; set; }
 
 		public static string GetTitleType(string titleId)
 		{
@@ -58,12 +63,6 @@
 			return titleTypes.ContainsKey(choppedTitleId) ? titleTypes[choppedTitleId] : "Unknown type";
 		}
 
-		public IEnumerator<string> GetEnumerator()
-		{
-			var correctOrder = new List<string> { this.TitleId, this.EncKey, this.Type, this.Name, this.Region, this.Serial };
-			return correctOrder.GetEnumerator();
-		}
-
 		public override bool Equals(object obj)
 		{
 			var other = obj as Nintendo3DSTitle;
@@ -73,11 +72,6 @@
 		public override int GetHashCode()
 		{
 			return this.TitleId != null ? StringComparer.OrdinalIgnoreCase.GetHashCode(this.TitleId) : 0;
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return this.GetEnumerator();
 		}
 
 		public override string ToString()

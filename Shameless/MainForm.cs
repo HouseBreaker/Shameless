@@ -52,9 +52,9 @@ namespace Shameless
 			if (!File.Exists(Files.DbPath))
 			{
 				var result = MessageBox.Show(
-					Properties.Resources.Disclaimer, 
-					"boo", 
-					MessageBoxButtons.OKCancel, 
+					Properties.Resources.Disclaimer,
+					"boo",
+					MessageBoxButtons.OKCancel,
 					MessageBoxIcon.Warning);
 
 				if (result == DialogResult.Cancel)
@@ -64,14 +64,14 @@ namespace Shameless
 
 				this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 				this.UpdateAction("Downloading database...");
-				await Task.Run(() => DatabaseParser.DownloadDatabase(Files.DbPath));
+				await Task.Run(() => DatabaseParser.DownloadDatabase(Files.DbPath, Files.SizesPath));
 
 				this.UpdateAction($"Prettifying JSON in \"{Files.DbPath}\"...");
 				File.WriteAllText(Files.DbPath, JsonPrettifier.FormatJson(File.ReadAllText(Files.DbPath)));
 			}
 
-			this.UpdateAction($"Reading data from \"{Files.DbPath}\"...");
-			this.allTitles = DatabaseParser.ParseFromDatabase(Files.DbPath);
+			this.UpdateAction($"Reading data from \"{Files.DbPath}\" and \"{Files.SizesPath}\"...");
+			this.allTitles = DatabaseParser.ParseFromDatabase(Files.DbPath, Files.SizesPath);
 
 			if (File.Exists(Files.FilterPath))
 			{
@@ -209,9 +209,9 @@ namespace Shameless
 			if (selectedRows.Length > maxTitles)
 			{
 				MessageBox.Show(
-					$"If you make a QR code which has more than {maxTitles} titles, your 3DS will not read it. The camera on the thing isn't that good. Please select less titles.", 
-					$"{maxTitles} title limit", 
-					MessageBoxButtons.OK, 
+					$"If you make a QR code which has more than {maxTitles} titles, your 3DS will not read it. The camera on the thing isn't that good. Please select less titles.",
+					$"{maxTitles} title limit",
+					MessageBoxButtons.OK,
 					MessageBoxIcon.Error);
 				return;
 			}
@@ -227,7 +227,6 @@ namespace Shameless
 			// if (mboxResult == DialogResult.Yes)
 			// {
 			var qrContents = new List<string[]>();
-
 			for (var index = 0; index < selectedRows.Length; index++)
 			{
 				var row = selectedRows[index];
@@ -235,23 +234,14 @@ namespace Shameless
 
 				var titleId = cells[0].Value.ToString();
 				var name = cells[2].Value.ToString();
+				var size = cells[7].Value.ToString();
 
 				var url = "http://3ds.nfshost.com/ticket/" + titleId.ToLower();
-				var shortUrl = await Task.Run(() => QrUtils.Shorten(url));
 
 				this.UpdateAction($"Shortening url ({index + 1}/{selectedRows.Length})");
+				var shortUrl = await Task.Run(() => QrUtils.Shorten(url));
 
-				long size = 0;
-
-				if (this.showSizeCheckbox.Checked)
-				{
-					this.UpdateAction($"Getting title size ({index + 1}/{selectedRows.Length})");
-					size = await Task.Run(() => CDNUtils.GetTitleSize(titleId));
-				}
-
-				var sizeString = size > 0 ? size.ToString() : string.Empty;
-
-				qrContents.Add(new[] { titleId, name, sizeString, shortUrl });
+				qrContents.Add(new[] { titleId, name, size, shortUrl });
 			}
 
 			var urls = qrContents.Select(a => a[3]).ToArray();
@@ -271,17 +261,17 @@ namespace Shameless
 		{
 			var result =
 				MessageBox.Show(
-					$"Warning: Only tickets with the current filter applied will be generated.\r\n\r\n{this.titles.Count} tickets are about to be generated. Continue?", 
-					"Ticket generation", 
+					$"Warning: Only tickets with the current filter applied will be generated.\r\n\r\n{this.titles.Count} tickets are about to be generated. Continue?",
+					"Ticket generation",
 					MessageBoxButtons.YesNo);
 
 			if (result == DialogResult.Yes)
 			{
 				var dialog = new FolderBrowserDialog
-								{
-									SelectedPath = Environment.CurrentDirectory, 
-									Description = "Folder where tickets will be outputted."
-								};
+				{
+					SelectedPath = Environment.CurrentDirectory,
+					Description = "Folder where tickets will be outputted."
+				};
 
 				var dialogResult = dialog.ShowDialog(this);
 
@@ -289,9 +279,9 @@ namespace Shameless
 				{
 					await Task.Run(() => this.GenerateTickets(this.titles.ToArray(), dialog.SelectedPath));
 					MessageBox.Show(
-						$"Successfully generated tickets at\r\n{dialog.SelectedPath}\\tickets", 
-						"Success", 
-						MessageBoxButtons.OK, 
+						$"Successfully generated tickets at\r\n{dialog.SelectedPath}\\tickets",
+						"Success",
+						MessageBoxButtons.OK,
 						MessageBoxIcon.Information);
 				}
 			}
@@ -362,6 +352,8 @@ namespace Shameless
 			this.titlesDataGrid.DataSource =
 				this.titles = new SortableBindingList<Nintendo3DSTitle>(TitleFilter.FilterTitles(this.allTitles, this.titleFilter));
 
+			this.SortDataGrid();
+
 			this.UpdateAction(string.Empty);
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 			this.titlesCountLabel.Text = $"{this.titles.Count} titles";
@@ -369,7 +361,10 @@ namespace Shameless
 
 		private void titlesDataGrid_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
 		{
-			if (this.lastSortedColumn == e.ColumnIndex)
+			// sort by actual size, not by human readable size
+			var column = e.ColumnIndex != 6 ? e.ColumnIndex : 7;
+
+			if (this.lastSortedColumn == column)
 			{
 				this.sortOrder = this.sortOrder ^= ListSortDirection.Descending;
 			}
@@ -378,7 +373,7 @@ namespace Shameless
 				this.sortOrder = ListSortDirection.Ascending;
 			}
 
-			this.lastSortedColumn = e.ColumnIndex;
+			this.lastSortedColumn = column;
 			this.SortDataGrid();
 		}
 
@@ -394,27 +389,46 @@ namespace Shameless
 			this.statusProgressbar.Style = ProgressBarStyle.Marquee;
 
 			const string tempPath = Files.DbPath + "_temp";
+			const string tempSizes = Files.SizesPath + "_temp";
 
-			this.UpdateAction("Downloading new database.");
+			this.UpdateAction("Downloading new database...");
 			using (var client = new WebClient())
 			{
 				await Task.Run(() => client.DownloadFile("http://3ds.nfshost.com/json_enc", tempPath));
+			}
+
+			this.UpdateAction("Downloading new sizes...");
+			using (var client = new WebClient())
+			{
+				await Task.Run(() => client.DownloadFile("http://housebreaker.net/sizes.json", tempSizes));
 			}
 
 			this.UpdateAction("Done!");
 
 			this.UpdateAction("Parsing...");
 
-			var downloadedTitles = DatabaseParser.ParseFromDatabase(tempPath);
+			var downloadedTitles = DatabaseParser.ParseFromDatabase(tempPath, tempSizes);
 
 			var newTitles = downloadedTitles.Except(this.allTitles).ToList();
 			var newTitleCount = newTitles.Count;
 
+			var newSizes = false;
+
+			foreach (var title in downloadedTitles)
+			{
+				if (this.allTitles.Where(a => a.TitleId == title.TitleId).Any(otherTitle => otherTitle.Size != title.Size))
+				{
+					newSizes = true;
+				}
+			}
+
 			this.statusProgressbar.Style = ProgressBarStyle.Blocks;
 
-			if (newTitleCount == 0)
+			if (newTitleCount == 0 && !newSizes)
 			{
 				File.Delete(tempPath);
+				File.Delete(tempSizes);
+
 				this.UpdateAction(string.Empty);
 				MessageBox.Show("Database is up to date.", "Good news!");
 				return;
@@ -425,24 +439,35 @@ namespace Shameless
 				newTitles = newTitles.Take(10).ToList();
 			}
 
-			var more = newTitleCount != newTitles.Count ? $" \r\n and {newTitleCount - 10} more" : string.Empty;
+			var more = newTitleCount != newTitles.Count ? $"\r\n and {newTitleCount - 10} more" : string.Empty;
 
 			var parseResult = MessageBox.Show(
-				$"New titles:\r\n {string.Join("\r\n", newTitles)}{more}. Update?", 
-				"New titles found", 
+				newTitles.Count > 0
+					? $"New titles:\r\n{string.Join("\r\n", newTitles)}{more}. Update?"
+					: "New title size info found. Update?",
+				"New titles found",
 				MessageBoxButtons.YesNo);
 
 			if (parseResult == DialogResult.Yes)
 			{
 				var titles = JsonPrettifier.FormatJson(File.ReadAllText(tempPath));
 				File.WriteAllText(Files.DbPath, titles);
+				File.WriteAllText(Files.SizesPath, File.ReadAllText(tempSizes));
+
 				File.Delete(tempPath);
+				File.Delete(tempSizes);
 
 				this.allTitles = downloadedTitles;
 				this.FilterTitlesAndUpdate();
 
 				this.UpdateAction("Database updated successfully!");
 			}
+		}
+
+		private void titlesDataGrid_Scroll(object sender, ScrollEventArgs e)
+		{
+			this.titlesDataGrid.Columns[6].AutoSizeMode = DataGridViewAutoSizeColumnMode.None;
+			this.titlesDataGrid.Columns[6].AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
 		}
 	}
 }
