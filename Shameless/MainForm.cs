@@ -107,8 +107,9 @@ namespace Shameless
 			var assemblyName = Assembly.GetExecutingAssembly().GetName();
 			var majorVersion = assemblyName.Version.Major;
 			var minorVersion = assemblyName.Version.Minor;
+			var buildVersion = assemblyName.Version.Build;
 
-			this.Text = $"{assemblyName.Name} v{majorVersion}.{minorVersion}";
+			this.Text = $"{assemblyName.Name} v{majorVersion}.{minorVersion}.{buildVersion}";
 		}
 
 		private void UpdateAction(string message)
@@ -245,7 +246,7 @@ namespace Shameless
 				var name = cells[2].Value.ToString();
 				var size = cells[7].Value.ToString();
 
-				var url = "http://3ds.nfshost.com/ticket/" + titleId.ToLower();
+				var url = "https://3ds.titlekeys.com/ticket/" + titleId.ToLower();
 
 				this.UpdateAction($"Shortening url ({index + 1}/{selectedRows.Length})");
 				var shortUrl = await Task.Run(() => QrUtils.Shorten(url));
@@ -403,7 +404,7 @@ namespace Shameless
 			this.UpdateAction("Downloading new database...");
 			using (var client = new WebClient())
 			{
-				await Task.Run(() => client.DownloadFile("http://3ds.nfshost.com/json_enc", tempPath));
+				await Task.Run(() => client.DownloadFile("https://3ds.titlekeys.com/json_enc", tempPath));
 			}
 
 			this.UpdateAction("Downloading new sizes...");

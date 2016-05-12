@@ -13,7 +13,7 @@
 		{
 			using (var client = new WebClient())
 			{
-				client.DownloadFile("http://3ds.nfshost.com/json_enc", outputPath);
+				client.DownloadFile("https://3ds.titlekeys.com/json_enc", outputPath);
 			}
 		}
 

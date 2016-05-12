@@ -61,7 +61,7 @@ namespace Shameless.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You&apos;re about to download a key database from 3ds.nfshost.com. The keys inside are kind of illegal.
+        ///   Looks up a localized string similar to You&apos;re about to download a key database from 3ds.titlekeys.com. The keys inside are kind of illegal.
         ///
         ///I am not liable for Nintendo coming to your house and putting little fuzzy pink handcuffs on you.
         ///
