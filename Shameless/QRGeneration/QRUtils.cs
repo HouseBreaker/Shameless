@@ -33,7 +33,7 @@
 
 			using (var client = new WebClient())
 			{
-				var response = client.DownloadString($"https://hec.su/api?url={url}");
+				var response = client.DownloadString($"http://hec.su/api?url={url}");
 				var json = (JObject)JsonConvert.DeserializeObject(response);
 
 				shortUrl = json["short"].Value<string>();
