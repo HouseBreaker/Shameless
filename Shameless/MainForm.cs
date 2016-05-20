@@ -310,7 +310,7 @@ namespace Shameless
 
 			foreach (var type in types)
 			{
-				var ticketOutputPath = "tickets" + "\\" + type;
+				var ticketOutputPath = outputDir + "\\" + "tickets" + "\\" + type;
 				Directory.CreateDirectory(ticketOutputPath);
 
 				var filtered = entries.Where(a => a.Type == type).ToArray();
