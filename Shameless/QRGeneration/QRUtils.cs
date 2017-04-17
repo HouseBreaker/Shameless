@@ -29,8 +29,7 @@
 
 		public static string Shorten(string url)
 		{
-			string shortUrl;
-			return shortUrl;
+			return url;
 		}
 	}
 }
