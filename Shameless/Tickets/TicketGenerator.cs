@@ -15,16 +15,16 @@
 			var titleId = BitConversion.HexToBytes(title.TitleId);
 			var titleKey = BitConversion.HexToBytes(title.EncKey);
 
-			const int TitleKeyOffset = 0x1BF;
-			for (var offset = TitleKeyOffset; offset < TitleKeyOffset + 0x10; offset++)
+			const int titleKeyOffset = 0x1BF;
+			for (var offset = titleKeyOffset; offset < titleKeyOffset + 0x10; offset++)
 			{
-				ticket[offset] = titleKey[offset - TitleKeyOffset];
+				ticket[offset] = titleKey[offset - titleKeyOffset];
 			}
 
-			const int TitleIdOffset = 0x1DC;
-			for (int offset = TitleIdOffset; offset < TitleIdOffset + 0x8; offset++)
+			const int titleIdOffset = 0x1DC;
+			for (int offset = titleIdOffset; offset < titleIdOffset + 0x8; offset++)
 			{
-				ticket[offset] = titleId[offset - TitleIdOffset];
+				ticket[offset] = titleId[offset - titleIdOffset];
 			}
 
 			if (!Directory.Exists(outputDir))
@@ -43,16 +43,16 @@
 			var titleId = BitConversion.HexToBytes(title.TitleId);
 			var titleKey = BitConversion.HexToBytes(title.EncKey);
 
-			const int TitleKeyOffset = 0x1BF;
-			for (var offset = TitleKeyOffset; offset < TitleKeyOffset + 0x10; offset++)
+			const int titleKeyOffset = 0x1BF;
+			for (var offset = titleKeyOffset; offset < titleKeyOffset + 0x10; offset++)
 			{
-				ticket[offset] = titleKey[offset - TitleKeyOffset];
+				ticket[offset] = titleKey[offset - titleKeyOffset];
 			}
 
-			const int TitleIdOffset = 0x1DC;
-			for (int offset = TitleIdOffset; offset < TitleIdOffset + 0x8; offset++)
+			const int titleIdOffset = 0x1DC;
+			for (int offset = titleIdOffset; offset < titleIdOffset + 0x8; offset++)
 			{
-				ticket[offset] = titleId[offset - TitleIdOffset];
+				ticket[offset] = titleId[offset - titleIdOffset];
 			}
 
 			return ticket;

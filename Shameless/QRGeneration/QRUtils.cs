@@ -1,13 +1,6 @@
 ﻿namespace Shameless.QRGeneration
 {
-	using System.Collections.Generic;
 	using System.Drawing;
-	using System.Linq;
-	using System.Net;
-
-	using Newtonsoft.Json;
-	using Newtonsoft.Json.Linq;
-
 	using ZXing;
 	using ZXing.Common;
 
@@ -25,11 +18,6 @@
 
 			var qrResult = new QrResult(url, new Bitmap(result));
 			return qrResult;
-		}
-
-		public static string Shorten(string url)
-		{
-			return url;
 		}
 	}
 }
