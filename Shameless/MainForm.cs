@@ -246,7 +246,7 @@ namespace Shameless
 				var name = cells[2].Value.ToString();
 				var size = cells[7].Value.ToString();
 
-				var url = "https://3ds.titlekeys.com/ticket/" + titleId.ToLower();
+				var url = "http://3ds.titlekeys.gq/ticket/" + titleId.ToLower();
 
 				this.UpdateAction($"Shortening url ({index + 1}/{selectedRows.Length})");
 				var shortUrl = await Task.Run(() => QrUtils.Shorten(url));
@@ -404,7 +404,7 @@ namespace Shameless
 			this.UpdateAction("Downloading new database...");
 			using (var client = new WebClient())
 			{
-				await Task.Run(() => client.DownloadFile("https://3ds.titlekeys.com/json_enc", tempPath));
+				await Task.Run(() => client.DownloadFile("http://3ds.titlekeys.gq/json_enc", tempPath));
 			}
 
 			this.UpdateAction("Downloading new sizes...");
