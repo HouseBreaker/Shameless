@@ -18,7 +18,7 @@
 
 		public static void WriteFilterSettings(TitleFilter filter, string filterPath)
 		{
-			var output = JsonPrettifier.FormatJson(JsonConvert.SerializeObject(filter));
+			var output = JsonConvert.SerializeObject(filter, Formatting.Indented);
 			File.WriteAllText(filterPath, output);
 		}
 	}

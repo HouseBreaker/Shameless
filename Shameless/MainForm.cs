@@ -249,9 +249,8 @@ namespace Shameless
 				var url = "http://3ds.titlekeys.gq/ticket/" + titleId.ToLower();
 
 				this.UpdateAction($"Shortening url ({index + 1}/{selectedRows.Length})");
-				var shortUrl = await Task.Run(() => QrUtils.Shorten(url));
 
-				qrContents.Add(new[] { titleId, name, size, shortUrl });
+				qrContents.Add(new[] { titleId, name, size, url });
 			}
 
 			var urls = qrContents.Select(a => a[3]).ToArray();
